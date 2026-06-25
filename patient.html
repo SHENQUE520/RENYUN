@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护 · 康复中心</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:#f0f5fc;}
+
+/* ── Three-column layout ── */
+.patient-body{
+    flex:1;display:grid;
+    grid-template-columns:220px 1fr 320px;
+    gap:0;overflow:hidden;min-height:0;
+}
+
+/* ══ LEFT SIDEBAR ══ */
+.sidebar{
+    background:#fff;border-right:1px solid #e9f0fa;
+    display:flex;flex-direction:column;overflow:hidden;
+    padding:20px 0 16px;
+}
+.sidebar-user{
+    padding:0 18px 18px;border-bottom:1px solid #f1f5f9;margin-bottom:10px;
+}
+.sidebar-avatar{
+    width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1a4b8c);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:700;margin-bottom:10px;
+}
+.sidebar-uname{font-size:15px;font-weight:600;color:#0a2540;}
+.sidebar-meta{font-size:12px;color:#94a3b8;margin-top:2px;}
+.sidebar-doctor{
+    font-size:12px;color:#2563eb;background:#eff6ff;
+    padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;
+}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0 10px;}
+.nav-group-label{
+    font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.8px;
+    padding:14px 8px 6px;text-transform:uppercase;
+}
+.nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;
+    border-radius:11px;cursor:pointer;transition:0.18s;margin-bottom:2px;
+    font-size:14px;color:#475569;font-weight:500;border:none;background:none;
+    width:100%;text-align:left;
+}
+.nav-item:hover{background:#f1f5f9;color:#1e293b;}
+.nav-item.active{background:#dbeafe;color:#2563eb;}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-item .nav-badge{
+    margin-left:auto;background:#ef4444;color:#fff;
+    font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center;
+}
+.nav-item .nav-badge.blue{background:#2563eb;}
+.sidebar-footer{padding:12px 10px 0;border-top:1px solid #f1f5f9;margin-top:auto;}
+
+/* ══ CENTER PANEL ══ */
+.center-panel{
+    display:flex;flex-direction:column;overflow:hidden;
+    background:#f0f5fc;
+}
+.center-scroll{flex:1;overflow-y:auto;padding:22px 20px 28px;}
+
+/* View panels — only active one shown */
+.view-panel{display:none;}
+.view-panel.active{display:block;}
+
+.monitor-card{
+    background:#fff;border-radius:18px;border:1px solid #e9f0fa;
+    box-shadow:0 4px 16px rgba(0,0,0,0.03);padding:22px 24px 20px;
+    display:flex;flex-direction:column;
+}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.chart-header .ctitle{font-size:16px;font-weight:600;color:#0a2540;}
+.chart-header .cmeta{display:flex;align-items:center;gap:8px;}
+.update-tag{font-size:11px;color:#94a3b8;background:#f1f5f9;padding:3px 11px;border-radius:20px;}
+.chart-wrapper{height:260px;position:relative;margin:6px 0 10px;}
+.monitor-hint{
+    background:#f0f7ff;border-radius:10px;padding:10px 15px;font-size:13px;
+    color:#1e4a7a;border-left:3px solid #2563eb;display:flex;align-items:center;gap:9px;
+}
+
+/* Stats row in center */
+.center-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+.cstat{
+    background:#fff;border-radius:14px;border:1px solid #e9f0fa;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+}
+.cstat .cicon{
+    width:38px;height:38px;border-radius:10px;background:#dbeafe;
+    display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+}
+.cstat .cnum{font-size:22px;font-weight:700;color:#0a2540;line-height:1;}
+.cstat .clbl{font-size:12px;color:#64748b;margin-top:2px;}
+
+/* Section headings in center */
+.section-heading{
+    font-size:14px;font-weight:600;color:#0a2540;margin:20px 0 10px;
+    display:flex;align-items:center;gap:6px;
+}
+
+/* Record mini-list */
+.record-mini{background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:hidden;}
+.record-mini-row{
+    display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f8fbff;
+    font-size:13px;gap:12px;
+}
+.record-mini-row:last-child{border-bottom:none;}
+.record-mini-row .rtime{color:#94a3b8;width:60px;flex-shrink:0;}
+.record-mini-row .rname{color:#0a2540;font-weight:500;flex:1;}
+.record-mini-row .rpitch{color:#64748b;width:50px;text-align:right;}
+
+/* ══ RIGHT PANEL ══ */
+.right-panel{
+    background:#fff;border-left:1px solid #e9f0fa;
+    display:flex;flex-direction:column;overflow:hidden;
+}
+.right-scroll{flex:1;overflow-y:auto;padding:18px 16px 24px;}
+
+/* Calendar */
+.cal-section{margin-bottom:20px;}
+.cal-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-nav .cal-month{font-size:13px;font-weight:600;color:#0a2540;}
+.cal-nav button{
+    background:none;border:1px solid #e2e8f0;width:26px;height:26px;
+    border-radius:8px;cursor:pointer;color:#64748b;font-size:14px;
+    display:flex;align-items:center;justify-content:center;transition:0.15s;
+}
+.cal-nav button:hover{background:#f1f5f9;border-color:#cbd5e1;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day-label{font-size:10px;font-weight:600;color:#94a3b8;text-align:center;padding:3px 0;}
+.cal-cell{
+    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;border-radius:8px;position:relative;
+}
+.cal-cell .cnum{font-size:11px;font-weight:500;color:#64748b;line-height:1;}
+.cal-cell .cdot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+.cal-cell.today{border:1.5px solid #2563eb;}
+.cal-cell.today .cnum{color:#2563eb;font-weight:700;}
+.cal-cell.done{background:#f0fdf4;}
+.cal-cell.done .cnum{color:#16a34a;}
+.cal-cell.missed{background:#fff5f5;}
+.cal-cell.missed .cnum{color:#dc2626;}
+.cal-cell.future .cnum{color:#cbd5e1;}
+.cal-cell.empty{pointer-events:none;}
+.cal-legend{display:flex;gap:12px;margin-top:8px;}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8;}
+.cal-legend-dot{width:8px;height:8px;border-radius:50%;}
+
+/* Tasks */
+.tasks-section{}
+.tasks-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.task-item{
+    padding:11px 14px;border-radius:12px;background:#f8fbff;
+    border:1px solid #eef2f6;margin-bottom:8px;
+}
+.task-item-head{display:flex;align-items:center;justify-content:space-between;}
+.task-item-name{font-size:14px;font-weight:600;color:#0a2540;}
+.task-item-count{font-size:12px;color:#64748b;margin-top:2px;}
+.task-item-key{font-size:11px;color:#2563eb;margin-top:4px;}
+.task-item-detail{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.5;}
+.task-empty{color:#94a3b8;font-size:13px;text-align:center;padding:20px 0;}
+
+.checkin-btn{
+    width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
+    border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;
+    transition:0.25s;margin-top:4px;
+}
+.checkin-btn:hover{background:#1d4ed8;box-shadow:0 6px 18px rgba(37,99,235,0.25);transform:translateY(-1px);}
+.checkin-btn:disabled{background:#94a3b8;cursor:not-allowed;box-shadow:none;transform:none;}
+.checkin-btn.done-btn{background:#22c55e;}
+.checkin-btn.done-btn:hover{background:#16a34a;box-shadow:0 6px 18px rgba(34,197,94,0.25);}
+
+/* Streak bar */
+.streak-bar{
+    background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;
+    padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;
+    border:1px solid #bfdbfe;
+}
+.streak-num{font-size:24px;font-weight:700;color:#2563eb;}
+.streak-lbl{font-size:12px;color:#1d4ed8;line-height:1.4;}
+
+@media(max-width:1100px){
+    .patient-body{grid-template-columns:200px 1fr 290px;}
+}
+@media(max-width:860px){
+    .patient-body{grid-template-columns:1fr;}
+    .sidebar,.right-panel{display:none;}
+    .center-panel{border-radius:0;}
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header class="app-header">
+    <div class="left">
+        <a class="brand" href="patient.html">🦿 韧云智护<small>· 患者端</small></a>
+    </div>
+    <div class="right">
+        <a class="user-info" href="profile.html">
+            <div class="avatar" id="headerAvatar">张</div>
+            <div class="detail">
+                <div class="name" id="headerName">张明</div>
+                <div class="role-tag">🧑 使用者</div>
+            </div>
+        </a>
+        <button class="nav-btn" onclick="logout()">退出</button>
+    </div>
+</header>
+
+<div class="patient-body">
+
+<!-- ══ LEFT SIDEBAR ══ -->
+<aside class="sidebar">
+    <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sideAvatar">张</div>
+        <div class="sidebar-uname" id="sideUname">张明</div>
+        <div class="sidebar-meta" id="sideMeta">男 · 28岁</div>
+        <div class="sidebar-doctor" id="sideDoctor">主治：李医生</div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-group-label">主要功能</div>
+        <button class="nav-item active" data-view="monitor" onclick="switchView('monitor',this)">
+            <span class="nav-icon">📈</span>动作监测
+        </button>
+        <button class="nav-item" data-view="overview" onclick="switchView('overview',this)">
+            <span class="nav-icon">🏠</span>康复概览
+        </button>
+        <div class="nav-group-label">管理</div>
+        <button class="nav-item" data-view="records" onclick="switchView('records',this)">
+            <span class="nav-icon">📊</span>执行记录
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>个人信息
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="nav-item" style="color:#ef4444;" onclick="logout()">
+            <span class="nav-icon">🚪</span>退出登录
+        </button>
+    </div>
+</aside>
+
+<!-- ══ CENTER PANEL ══ -->
+<main class="center-panel">
+    <div class="center-scroll">
+
+        <!-- View: Monitor -->
+        <div class="view-panel active" id="view-monitor">
+            <div class="monitor-card">
+                <div class="chart-header">
+                    <span class="ctitle">📈 实时动作监测</span>
+                    <div class="cmeta">
+                        <span class="update-tag" id="lastUpdateTag">上次更新：--</span>
+                        <span class="badge badge-blue">模拟数据</span>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="patientChart"></canvas>
+                </div>
+                <div class="monitor-hint">
+                    <span class="dot dot-green" id="hintDot"></span>
+                    <span id="hintText">动作标准，保持姿势。</span>
+                </div>
+            </div>
+
+            <div class="center-stats" id="centerStats"></div>
+        </div>
+
+        <!-- View: Overview -->
+        <div class="view-panel" id="view-overview">
+            <div class="section-heading">🏠 康复概览</div>
+            <div class="center-stats" id="overviewStats"></div>
+            <div class="section-heading" style="margin-top:20px;">🕐 近期记录</div>
+            <div class="record-mini" id="recentRecords"></div>
+        </div>
+
+        <!-- View: Records -->
+        <div class="view-panel" id="view-records">
+            <div class="section-heading">📊 动作执行记录</div>
+            <div style="background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:auto;">
+                <table class="record-table" id="fullRecordTable">
+                    <thead><tr>
+                        <th>时间</th><th>动作</th><th>最大角度</th><th>异常次数</th><th>状态</th>
+                    </tr></thead>
+                    <tbody id="fullRecordBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ══ RIGHT PANEL ══ -->
+<aside class="right-panel">
+    <div class="right-scroll">
+
+        <!-- Streak -->
+        <div class="streak-bar" id="streakBar">
+            <div class="streak-num" id="streakNum">0</div>
+            <div class="streak-lbl">天连续打卡<br/><span style="font-weight:400;color:#64748b;">保持节奏，加油！</span></div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="cal-section">
+            <div class="cal-section-title">📅 康复打卡日历</div>
+            <div class="cal-nav">
+                <button id="calPrev">&#8249;</button>
+                <span class="cal-month" id="calTitle"></span>
+                <button id="calNext">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#22c55e;"></div>已打卡</div>
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ef4444;"></div>未完成</div>
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#2563eb;"></div>今天</div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="tasks-section">
+            <div class="tasks-section-title">
+                <span>📋 今日康复任务</span>
+                <span class="badge badge-gray" id="taskBadge">0项</span>
+            </div>
+            <div id="taskList"></div>
+            <button class="checkin-btn" id="checkinBtn">✅ 确认完成今日打卡</button>
+        </div>
+
+    </div>
+</aside>
+
+</div><!-- end patient-body -->
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+if (!requireAuth('patient')) throw new Error('unauth');
+
+// Always reload patient from DB to get latest tasks from doctor
+const p = getCurrentPatient();
+initHeader('patient');
+
+// Sidebar user info
+document.getElementById('sideAvatar').textContent = p.name.charAt(0);
+document.getElementById('sideUname').textContent = p.name;
+document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.age||'')+'岁';
+document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
+
+// ── View switching ────────────────────────────────────────
+function switchView(id, btn) {
+    document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    if (id === 'overview') renderOverview();
+    if (id === 'records') renderFullRecords();
+}
+window.switchView = switchView;
+
+// ── Calendar ──────────────────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+const DAY_LABELS = ['日','一','二','三','四','五','六'];
+
+function renderCalendar() {
+    document.getElementById('calTitle').textContent = calYear + '年' + (calMonth+1) + '月';
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    DAY_LABELS.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'cal-day-label';
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = getTodayStr();
+    for (let i = 0; i < firstDay; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-cell empty';
+        grid.appendChild(el);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+        const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+        const rec = p.history.find(h => h.date === ds);
+        const isToday = ds === today;
+        const isPast = ds < today;
+        const cell = document.createElement('div');
+        const num = document.createElement('div');
+        num.className = 'cnum'; num.textContent = d;
+        cell.appendChild(num);
+        if (rec && rec.done) {
+            cell.className = 'cal-cell done';
+            const dot = document.createElement('div'); dot.className='cdot'; dot.style.background='#22c55e'; cell.appendChild(dot);
+        } else if (isPast && !isToday) {
+            cell.className = 'cal-cell missed';
+            const dot = document.createElement('div'); dot.className='cdot'; dot.style.background='#ef4444'; cell.appendChild(dot);
+        } else {
+            cell.className = 'cal-cell future';
+        }
+        if (isToday) cell.classList.add('today');
+        grid.appendChild(cell);
+    }
+}
+document.getElementById('calPrev').onclick = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
+document.getElementById('calNext').onclick = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
+renderCalendar();
+
+// ── Streak ────────────────────────────────────────────────
+function calcStreak() {
+    let streak = 0;
+    const today = getTodayStr();
+    const sorted = p.history.filter(h=>h.done).map(h=>h.date).sort().reverse();
+    let cursor = today;
+    for (const d of sorted) {
+        if (d === cursor) { streak++; const dt = new Date(cursor); dt.setDate(dt.getDate()-1); cursor = dt.toISOString().slice(0,10); }
+        else if (d < cursor) break;
+    }
+    document.getElementById('streakNum').textContent = streak;
+}
+calcStreak();
+
+// ── Tasks (from doctor) ───────────────────────────────────
+function renderTasks() {
+    const tasks = p.tasks || [];
+    document.getElementById('taskBadge').textContent = tasks.length + '项';
+    const container = document.getElementById('taskList');
+    if (!tasks.length) {
+        container.innerHTML = '<div class="task-empty">医生暂未分配任务</div>';
+        updateCheckinBtn(); return;
+    }
+    container.innerHTML = tasks.map((t, i) => {
+        const isDoing = i === 0 && !t.done;
+        const cls = t.done ? 'badge-green' : (isDoing ? 'badge-blue' : 'badge-gray');
+        const txt = t.done ? '已完成' : (isDoing ? '进行中' : '待完成');
+        return `<div class="task-item">
+            <div class="task-item-head">
+                <div>
+                    <div class="task-item-name">${t.name}</div>
+                    <div class="task-item-count">${t.count}${t.unit||'次'}</div>
+                    ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
+                    ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
+                </div>
+                <span class="badge ${cls}">${txt}</span>
+            </div>
+        </div>`;
+    }).join('');
+    updateCheckinBtn();
+}
+
+function updateCheckinBtn() {
+    const btn = document.getElementById('checkinBtn');
+    const todayRec = p.history.find(h => h.date === getTodayStr());
+    if (todayRec && todayRec.done) {
+        btn.textContent='✅ 今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
+    }
+    const allDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
+    btn.textContent = allDone ? '✅ 确认完成今日打卡' : '⏳ 请先完成所有任务';
+    btn.className = 'checkin-btn'; btn.disabled = !allDone;
+}
+
+document.getElementById('checkinBtn').onclick = function() {
+    const today = getTodayStr();
+    if (p.history.some(h => h.date===today && h.done)) { showToast('今日已打卡！','info'); return; }
+    if (!p.tasks.every(t => t.done)) { showToast('请先完成所有康复任务','error'); return; }
+    p.history.push({date:today, done:true});
+    p.tasks.forEach(t => t.done = false);
+    saveDB();
+    renderTasks(); renderCalendar(); calcStreak();
+    showToast('🎉 打卡成功！今日康复训练已完成。','success');
+};
+renderTasks();
+
+// ── Center stats ──────────────────────────────────────────
+function renderCenterStats() {
+    const doneTotal = p.history.filter(h=>h.done).length;
+    const today = getTodayStr();
+    const todayDone = p.history.some(h=>h.date===today&&h.done);
+    const html = `
+        <div class="cstat"><div class="cicon">📅</div><div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div></div>
+        <div class="cstat"><div class="cicon">📋</div><div><div class="cnum">${p.tasks.length}</div><div class="clbl">今日任务项</div></div></div>
+        <div class="cstat"><div class="cicon">${todayDone?'✅':'⏳'}</div><div><div class="cnum" style="font-size:16px;margin-top:2px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div></div>`;
+    document.getElementById('centerStats').innerHTML = html;
+}
+renderCenterStats();
+
+// ── Overview view ─────────────────────────────────────────
+function renderOverview() {
+    const doneTotal = p.history.filter(h=>h.done).length;
+    const today = getTodayStr();
+    const todayDone = p.history.some(h=>h.date===today&&h.done);
+    document.getElementById('overviewStats').innerHTML = `
+        <div class="cstat"><div class="cicon">📅</div><div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div></div>
+        <div class="cstat"><div class="cicon">🔥</div><div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div></div>
+        <div class="cstat"><div class="cicon">📋</div><div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div></div>`;
+    const recentEl = document.getElementById('recentRecords');
+    const recs = (p.records||[]).slice(0,6);
+    if (!recs.length) { recentEl.innerHTML='<div class="task-empty" style="padding:20px;">暂无执行记录</div>'; return; }
+    recentEl.innerHTML = recs.map(r =>
+        `<div class="record-mini-row">
+            <span class="rtime">${r.time}</span>
+            <span class="rname">${r.action}</span>
+            <span class="rpitch">${r.pitch}°</span>
+            <span class="badge ${getStatusClass(r.status)}">${r.status}</span>
+        </div>`).join('');
+}
+
+// ── Records view ──────────────────────────────────────────
+function renderFullRecords() {
+    const tbody = document.getElementById('fullRecordBody');
+    if (!p.records||!p.records.length) {
+        tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:28px 0;">暂无动作记录</td></tr>'; return;
+    }
+    tbody.innerHTML = p.records.map(r =>
+        `<tr><td>${r.time}</td><td>${r.action}</td><td>${r.pitch}°</td><td>${r.abnormal}</td>
+         <td><span class="badge ${getStatusClass(r.status)}">${r.status}</span></td></tr>`
+    ).join('');
+}
+
+// ── Chart (5-min update) ──────────────────────────────────
+let chartInstance = null;
+
+function buildMonitorData() {
+    if (!p.monitorData || p.monitorData.length < 20)
+        p.monitorData = Array.from({length:40}, () => 25 + Math.random()*30);
+}
+
+function renderChart() {
+    buildMonitorData();
+    const ctx = document.getElementById('patientChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: p.monitorData.map((_,i)=>i+''),
+            datasets:[{
+                label:'Pitch 角度 (°)', data: p.monitorData,
+                borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.07)',
+                borderWidth:2.5, pointRadius:0, pointHoverRadius:5, fill:true, tension:0.35,
+            }]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+                legend:{labels:{color:'#475569',font:{size:12,weight:'500'},boxWidth:12,padding:10}},
+                tooltip:{backgroundColor:'#0a2540',cornerRadius:10,padding:10}
+            },
+            scales:{
+                x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#94a3b8',font:{size:10}},
+                   title:{display:true,text:'采样点',color:'#94a3b8',font:{size:10}}},
+                y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{color:'#94a3b8',font:{size:10}},
+                   title:{display:true,text:'角度 (°)',color:'#94a3b8',font:{size:10}},min:0,max:80}
+            },
+            interaction:{intersect:false,mode:'index'}
+        }
+    });
+    updateHint();
+    const now = new Date();
+    document.getElementById('lastUpdateTag').textContent =
+        '上次更新：' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+function refreshMonitorData() {
+    p.monitorData = Array.from({length:40}, () => {
+        let v = 25 + Math.random()*35;
+        if (Math.random()<0.08) v = 45 + Math.random()*25;
+        return Math.max(8, Math.min(72, v));
+    });
+    saveDB(); renderChart(); renderCenterStats();
+}
+
+function updateHint() {
+    const v = p.monitorData[p.monitorData.length-1] || 35;
+    const dot = document.getElementById('hintDot');
+    const txt = document.getElementById('hintText');
+    if (v<20){txt.textContent='⚠️ 角度过低，请抬高腿部增加负荷。';dot.className='dot dot-yellow';}
+    else if(v<35){txt.textContent='📈 稍微提高一点，保护膝盖。';dot.className='dot dot-yellow';}
+    else if(v<55){txt.textContent='✅ 动作标准，保持姿势。';dot.className='dot dot-green';}
+    else{txt.textContent='📉 角度偏高，适当降低幅度。';dot.className='dot dot-yellow';}
+}
+
+renderChart();
+setInterval(refreshMonitorData, 5 * 60 * 1000);
+</script>
+<script src="js/chat.js"></script>
+<script>
+initChat('patient');
+</script>
+</body>
+</html>
