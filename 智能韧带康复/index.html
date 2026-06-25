@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护</title>
+<script src="js/db.js"></script>
+<script>
+// Redirect based on login state
+window.addEventListener('DOMContentLoaded', function() {
+    if (!DB.currentUser) { window.location.replace('login.html'); }
+    else if (DB.currentUser === 'patient') { window.location.replace('patient.html'); }
+    else { window.location.replace('doctor.html'); }
+});
+</script>
+</head>
+<body></body>
+</html>
