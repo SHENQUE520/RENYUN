@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护 · 登录</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#f0f7ff 0%,#dbeafe 100%);padding:24px;}
+.login-container{
+    display:flex;max-width:980px;width:100%;background:#fff;
+    border-radius:32px;box-shadow:0 25px 60px rgba(37,99,235,0.13);
+    overflow:hidden;min-height:520px;
+}
+.login-brand{
+    flex:1;background:linear-gradient(135deg,#1a4b8c 0%,#2563eb 100%);
+    padding:48px 40px;display:flex;flex-direction:column;justify-content:center;
+    color:#fff;position:relative;overflow:hidden;
+}
+.login-brand::after{
+    content:'';position:absolute;top:-40%;right:-20%;
+    width:300px;height:300px;background:rgba(255,255,255,0.06);border-radius:50%;
+}
+.brand-logo{font-size:38px;font-weight:700;letter-spacing:2px;display:flex;align-items:center;gap:12px;z-index:1;}
+.brand-logo span{background:rgba(255,255,255,0.18);padding:4px 14px;border-radius:40px;font-size:13px;font-weight:400;letter-spacing:0;}
+.brand-slogan{font-size:18px;font-weight:300;margin-top:14px;opacity:0.85;z-index:1;letter-spacing:0.5px;}
+.feature-tags{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;z-index:1;}
+.feature-tags .tag{
+    background:rgba(255,255,255,0.14);backdrop-filter:blur(4px);
+    padding:5px 16px;border-radius:40px;font-size:13px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+.login-form{flex:0 0 370px;padding:48px 40px;display:flex;flex-direction:column;justify-content:center;}
+.login-form h2{font-size:24px;font-weight:600;color:#0a2540;margin-bottom:5px;}
+.login-form .sub{color:#64748b;font-size:14px;margin-bottom:26px;}
+.role-selector{display:flex;gap:10px;margin-bottom:22px;background:#f1f5f9;border-radius:12px;padding:4px;}
+.role-btn{
+    flex:1;padding:10px 0;border:none;border-radius:9px;background:transparent;
+    font-size:14px;font-weight:500;color:#64748b;cursor:pointer;transition:0.2s;
+}
+.role-btn.active{background:#fff;color:#2563eb;box-shadow:0 4px 12px rgba(37,99,235,0.13);}
+.role-btn:hover:not(.active){color:#1e293b;}
+.login-btn{
+    width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
+    border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
+    transition:0.25s;margin-top:6px;
+}
+.login-btn:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 8px 20px rgba(37,99,235,0.28);}
+.login-btn:active{transform:scale(0.98);}
+.demo-hint{
+    margin-top:16px;font-size:12px;color:#94a3b8;text-align:center;
+    border-top:1px solid #eef2f6;padding-top:16px;line-height:1.8;
+}
+.demo-hint kbd{background:#f1f5f9;padding:2px 9px;border-radius:5px;font-size:11px;color:#334155;border:1px solid #e2e8f0;}
+@media(max-width:900px){
+    .login-container{flex-direction:column;max-width:440px;}
+    .login-brand{padding:32px 28px;}
+    .login-form{flex:unset;padding:32px 28px;}
+}
+@media(max-width:480px){
+    .login-form{padding:24px 20px;}
+    .login-brand{padding:24px 20px;}
+    .brand-logo{font-size:26px;gap:8px;flex-wrap:wrap;}
+    .brand-slogan{font-size:15px;}
+    .feature-tags .tag{font-size:12px;padding:4px 12px;}
+}
+@media(max-width:360px){
+    .brand-logo{font-size:22px;}
+}
+
+/* ── About modal responsive ── */
+.about-product-grid,.about-team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+.about-features-grid,.contact-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.about-modal-pad{padding:28px;}
+.about-tab-btn{padding:10px 22px;font-size:14px;}
+@media(max-width:700px){
+    .about-product-grid,.about-team-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+    .about-features-grid,.contact-grid-2{grid-template-columns:1fr;}
+    .about-modal-pad{padding:16px;}
+    .about-tab-btn{padding:9px 12px;font-size:13px;}
+    #aboutOverlay{padding:10px;}
+    #aboutModal{border-radius:16px;max-height:92vh;}
+    .contact-fallback-line a{display:block;margin-top:4px;}
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- About button top-right -->
+<div style="position:fixed;top:18px;right:24px;z-index:200;">
+    <button onclick="openAbout()" style="padding:8px 20px;border:1.5px solid rgba(255,255,255,0.6);
+        border-radius:30px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);
+        color:#1a4b8c;font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;
+        box-shadow:0 2px 12px rgba(37,99,235,0.1);">关于</button>
+</div>
+
+<!-- About modal overlay -->
+<div id="aboutOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,37,64,0.45);
+    backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:20px;">
+    <div id="aboutModal" style="background:#fff;border-radius:24px;width:100%;max-width:780px;
+        max-height:88vh;overflow:hidden;display:flex;flex-direction:column;
+        box-shadow:0 32px 80px rgba(0,0,0,0.22);animation:chatSlide 0.25s ease;">
+        <!-- Modal header tabs -->
+        <div style="display:flex;align-items:center;justify-content:space-between;
+            padding:20px 28px 0;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
+            <div style="display:flex;gap:4px;">
+                <button id="tabProduct" class="about-tab-btn" onclick="switchAboutTab('product')"
+                    style="border:none;background:none;
+                    font-weight:600;color:#2563eb;border-bottom:2.5px solid #2563eb;
+                    cursor:pointer;transition:0.2s;">关于产品</button>
+                <button id="tabTeam" class="about-tab-btn" onclick="switchAboutTab('team')"
+                    style="border:none;background:none;
+                    font-weight:500;color:#94a3b8;border-bottom:2.5px solid transparent;
+                    cursor:pointer;transition:0.2s;">关于我们</button>
+            </div>
+            <button onclick="closeAbout()" style="width:32px;height:32px;border-radius:50%;
+                border:none;background:#f1f5f9;cursor:pointer;font-size:16px;color:#64748b;
+                display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0;">✕</button>
+        </div>
+        <!-- Tab content -->
+        <div class="about-modal-pad" style="flex:1;overflow-y:auto;">
+            <!-- Product tab -->
+            <div id="tabContentProduct">
+                <div style="margin-bottom:28px;">
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                        <span style="font-size:36px;">🦿</span>
+                        <div>
+                            <div style="font-size:22px;font-weight:700;color:#0a2540;letter-spacing:0.5px;">韧云智护</div>
+                            <div style="font-size:13px;color:#64748b;margin-top:2px;">智能韧带重建康复助手 · v2.0</div>
+                        </div>
+                    </div>
+                    <p style="font-size:14px;color:#475569;line-height:1.8;max-width:640px;">
+                        韧云智护是一套面向膝关节韧带重建术后患者的智能远程康复管理系统，连接患者与主治医生，
+                        通过腿环传感器实时采集动作数据，配合医生远程指导，让每一位患者在家也能完成专业级康复训练。
+                    </p>
+                </div>
+                <!-- Product images -->
+                <div class="about-product-grid">
+                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                        <img src="产品1.jpg" alt="产品图1" style="width:100%;height:160px;object-fit:cover;display:block;"/>
+                        <div style="padding:12px 14px;background:#fff;">
+                            <div style="font-size:13px;font-weight:600;color:#0a2540;">智能腿环设备</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5;">
+                                内置六轴IMU传感器，精准捕捉膝关节Pitch/Roll/Yaw角度变化，蓝牙低功耗连接，续航72小时。
+                            </div>
+                        </div>
+                    </div>
+                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                        <img src="产品3 (1).jpg" alt="产品图2" style="width:100%;height:160px;object-fit:cover;display:block;"/>
+                        <div style="padding:12px 14px;background:#fff;">
+                            <div style="font-size:13px;font-weight:600;color:#0a2540;">患者康复端</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5;">
+                                实时动作监测、每日任务打卡、康复日历追踪，患者与医生随时保持沟通，康复进度一目了然。
+                            </div>
+                        </div>
+                    </div>
+                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                        <img src="产品3 (2).jpg" alt="产品图3" style="width:100%;height:160px;object-fit:cover;display:block;"/>
+                        <div style="padding:12px 14px;background:#fff;">
+                            <div style="font-size:13px;font-weight:600;color:#0a2540;">医生工作台</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5;">
+                                多患者管理、自定义任务发布、动作记录分析、定时提醒设置，让医生远程康复管理更高效。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Features list -->
+                <div style="background:#f8fbff;border-radius:16px;padding:20px 24px;border:1px solid #e9f0fa;">
+                    <div style="font-size:14px;font-weight:600;color:#0a2540;margin-bottom:14px;">核心功能</div>
+                    <div class="about-features-grid">
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">📊</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">实时动作监测</div>
+                            <div style="font-size:12px;color:#64748b;">5分钟刷新一次，波动图直观呈现康复进展</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">📋</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">个性化任务</div>
+                            <div style="font-size:12px;color:#64748b;">医生可自定义动作、要点、细节，精准指导</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">📅</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">打卡日历</div>
+                            <div style="font-size:12px;color:#64748b;">每日完成记录同步医生端，激励患者持续坚持</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">💬</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">医患沟通</div>
+                            <div style="font-size:12px;color:#64748b;">悬浮聊天窗口支持文字、表情、图片实时互通</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">⏰</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">定时提醒</div>
+                            <div style="font-size:12px;color:#64748b;">医生为患者设置每日康复提醒，按时推送通知</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:18px;flex-shrink:0;">👤</span>
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">个人档案</div>
+                            <div style="font-size:12px;color:#64748b;">患者及医生信息可随时查看和更新</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Team tab -->
+            <div id="tabContentTeam" style="display:none;">
+                <div style="margin-bottom:24px;">
+                    <div style="font-size:20px;font-weight:700;color:#0a2540;margin-bottom:8px;">团队介绍</div>
+                    <p style="font-size:14px;color:#475569;line-height:1.8;">
+                        我们是一支专注于数字医疗与智能康复领域的跨学科团队，由骨科医生、软件工程师、产品设计师与康复治疗师共同组成，
+                        致力于用技术让每一位韧带重建患者获得更专业、更便捷的康复体验。
+                    </p>
+                </div>
+                <!-- Team members -->
+                <div class="about-team-grid">
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1a4b8c,#2563eb);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">李</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">李晨光</div>
+                        <div style="font-size:12px;color:#2563eb;margin-top:3px;">创始人 · 骨科主任医师</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            15年骨科康复经验，专注膝关节运动损伤，项目技术顾问。
+                        </div>
+                    </div>
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#06b6d4);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">张</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">张雨桐</div>
+                        <div style="font-size:12px;color:#0891b2;margin-top:3px;">技术负责人 · 全栈工程师</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            深耕医疗软件8年，负责系统架构设计与传感器数据算法。
+                        </div>
+                    </div>
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">王</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">王心怡</div>
+                        <div style="font-size:12px;color:#7c3aed;margin-top:3px;">产品设计师 · UX Lead</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            专注医疗场景用户体验设计，致力于让复杂功能简单易用。
+                        </div>
+                    </div>
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">陈</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">陈浩然</div>
+                        <div style="font-size:12px;color:#059669;margin-top:3px;">康复治疗师 · 内容顾问</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            国家认证康复治疗师，负责康复训练方案设计与内容审核。
+                        </div>
+                    </div>
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#d97706,#f59e0b);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">刘</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">刘思远</div>
+                        <div style="font-size:12px;color:#d97706;margin-top:3px;">硬件工程师 · 传感器方向</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            负责腿环传感器硬件设计与蓝牙通信协议开发。
+                        </div>
+                    </div>
+                    <div style="background:#f8fbff;border-radius:16px;padding:20px 18px;border:1px solid #e9f0fa;text-align:center;">
+                        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#ef4444);
+                            color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;
+                            justify-content:center;margin:0 auto 12px;">赵</div>
+                        <div style="font-size:14px;font-weight:600;color:#0a2540;">赵晓敏</div>
+                        <div style="font-size:12px;color:#dc2626;margin-top:3px;">运营总监 · 市场推广</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:6px;line-height:1.5;">
+                            负责产品市场推广与医院合作拓展，联系各地康复机构。
+                        </div>
+                    </div>
+                </div>
+                <!-- Contact -->
+                <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:16px;
+                    padding:22px 24px;border:1px solid #bfdbfe;">
+                    <div style="font-size:14px;font-weight:600;color:#0a2540;margin-bottom:14px;">📬 联系我们</div>
+                    <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:16px;">
+                        如您有任何问题、合作意向或改进建议，欢迎通过以下方式联系我们，我们会在1-2个工作日内回复。
+                    </p>
+                    <form id="contactForm" onsubmit="submitContact(event)"
+                        style="display:flex;flex-direction:column;gap:10px;">
+                        <div class="contact-grid-2">
+                            <input id="contactName" type="text" placeholder="您的姓名"
+                                style="padding:10px 13px;border:1.5px solid #bfdbfe;border-radius:10px;
+                                font-size:13px;font-family:inherit;outline:none;background:#fff;transition:0.2s;"
+                                onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#bfdbfe'"/>
+                            <input id="contactEmail" type="email" placeholder="邮箱地址"
+                                style="padding:10px 13px;border:1.5px solid #bfdbfe;border-radius:10px;
+                                font-size:13px;font-family:inherit;outline:none;background:#fff;transition:0.2s;"
+                                onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#bfdbfe'"/>
+                        </div>
+                        <input id="contactSubject" type="text" placeholder="主题"
+                            style="padding:10px 13px;border:1.5px solid #bfdbfe;border-radius:10px;
+                            font-size:13px;font-family:inherit;outline:none;background:#fff;transition:0.2s;"
+                            onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#bfdbfe'"/>
+                        <textarea id="contactMsg" placeholder="您的留言内容…" rows="3"
+                            style="padding:10px 13px;border:1.5px solid #bfdbfe;border-radius:10px;
+                            font-size:13px;font-family:inherit;outline:none;resize:vertical;background:#fff;transition:0.2s;"
+                            onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#bfdbfe'"></textarea>
+                        <button type="submit"
+                            style="padding:11px;background:#2563eb;color:#fff;border:none;border-radius:10px;
+                            font-size:14px;font-weight:500;cursor:pointer;transition:0.2s;font-family:inherit;"
+                            onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                            发送邮件
+                        </button>
+                        <div class="contact-fallback-line" style="font-size:12px;color:#64748b;text-align:center;">
+                            或直接发送邮件至：<a href="mailto:contact@rehab-cloud.com"
+                            style="color:#2563eb;text-decoration:none;">contact@rehab-cloud.com</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes chatSlide{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="login-container">
+    <div class="login-brand">
+        <div class="brand-logo">🦿 韧云智护<span>v2.0</span></div>
+        <div class="brand-slogan">智能韧带重建 · 远程康复助手</div>
+        <div class="feature-tags">
+            <span class="tag">📊 动作监测</span>
+            <span class="tag">🧑‍⚕️ 医生协同</span>
+            <span class="tag">📱 腿环设备</span>
+            <span class="tag">🏥 远程康复</span>
+        </div>
+    </div>
+    <div class="login-form">
+        <h2>登录系统</h2>
+        <p class="sub">选择身份，进入您的康复管理空间</p>
+        <div class="role-selector" id="roleSelector">
+            <button class="role-btn active" data-role="patient">🧑 使用者</button>
+            <button class="role-btn" data-role="doctor">👨‍⚕️ 医生</button>
+        </div>
+        <div class="field">
+            <label>账号</label>
+            <input type="text" id="loginUser" value="zhangsan" placeholder="请输入账号"/>
+        </div>
+        <div class="field">
+            <label>密码</label>
+            <input type="password" id="loginPass" value="123456" placeholder="请输入密码"/>
+        </div>
+        <button class="login-btn" id="loginBtn">进入系统 →</button>
+        <div class="demo-hint">
+            演示账号：<kbd>zhangsan</kbd> / <kbd>123456</kbd>（使用者）<br/>
+            <kbd>doctor</kbd> / <kbd>123456</kbd>（医生）
+        </div>
+    </div>
+</div>
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+let selectedRole = 'patient';
+document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedRole = this.dataset.role;
+        document.getElementById('loginUser').value = selectedRole === 'doctor' ? 'doctor' : 'zhangsan';
+    });
+});
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ── About modal ──────────────────────────────────────────
+function openAbout() {
+    const ov = document.getElementById('aboutOverlay');
+    ov.style.display = 'flex';
+    switchAboutTab('product');
+}
+function closeAbout() {
+    document.getElementById('aboutOverlay').style.display = 'none';
+}
+function switchAboutTab(tab) {
+    const isProduct = tab === 'product';
+    document.getElementById('tabContentProduct').style.display = isProduct ? '' : 'none';
+    document.getElementById('tabContentTeam').style.display = isProduct ? 'none' : '';
+    const tp = document.getElementById('tabProduct');
+    const tt = document.getElementById('tabTeam');
+    tp.style.color = isProduct ? '#2563eb' : '#94a3b8';
+    tp.style.borderBottomColor = isProduct ? '#2563eb' : 'transparent';
+    tp.style.fontWeight = isProduct ? '600' : '500';
+    tt.style.color = isProduct ? '#94a3b8' : '#2563eb';
+    tt.style.borderBottomColor = isProduct ? 'transparent' : '#2563eb';
+    tt.style.fontWeight = isProduct ? '500' : '600';
+}
+// Close on overlay click
+document.getElementById('aboutOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeAbout();
+});
+window.openAbout = openAbout;
+window.closeAbout = closeAbout;
+window.switchAboutTab = switchAboutTab;
+
+function submitContact(e) {
+    e.preventDefault();
+    const name    = document.getElementById('contactName').value.trim();
+    const email   = document.getElementById('contactEmail').value.trim();
+    const subject = document.getElementById('contactSubject').value.trim();
+    const msg     = document.getElementById('contactMsg').value.trim();
+    if (!name || !email || !msg) { showToast('请填写姓名、邮箱和留言内容', 'error'); return; }
+    // Build mailto link as fallback (no backend)
+    const body = encodeURIComponent(`姓名：${name}\n\n${msg}`);
+    const sub  = encodeURIComponent(subject || '韧云智护用户留言');
+    window.location.href = `mailto:contact@rehab-cloud.com?subject=${sub}&body=${body}`;
+    showToast('正在打开邮件客户端…', 'success');
+    document.getElementById('contactForm').reset();
+}
+window.submitContact = submitContact;
+
+function doLogin() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    if (!user || !pass) { showToast('请输入账号和密码', 'error'); return; }
+
+    if (selectedRole === 'patient') {
+        const p = DB.patients.find(p => p.username === user || p.name === user);
+        if (p && p.password === pass) {
+            DB.currentUser = 'patient';
+            DB.currentPatientId = p.id;
+            saveDB();
+            showToast('欢迎回来，' + p.name + '！', 'success');
+            setTimeout(() => window.location.href = 'patient.html', 600);
+        } else {
+            showToast('账号或密码错误', 'error');
+        }
+    } else {
+        const d = DB.doctors.find(d => d.username === user);
+        if (d && d.password === pass) {
+            DB.currentUser = 'doctor';
+            DB.currentDoctorId = d.id;
+            saveDB();
+            showToast('欢迎，' + d.name + '！', 'success');
+            setTimeout(() => window.location.href = 'doctor.html', 600);
+        } else {
+            showToast('账号或密码错误', 'error');
+        }
+    }
+}
+</script>
+</body>
+</html>
