@@ -24,8 +24,8 @@ function initChat(role) {
     }
     .chat-panel{
         position:fixed;bottom:94px;right:28px;width:340px;height:480px;
-        background:#fff;border-radius:20px;
-        box-shadow:0 20px 56px rgba(0,0,0,0.18);
+        background:#fff;border-radius:8px;
+        box-shadow:0 8px 28px rgba(0,0,0,0.14);
         z-index:1199;display:none;flex-direction:column;overflow:hidden;
         border:1px solid #e2e8f0;
     }
@@ -62,11 +62,11 @@ function initChat(role) {
     .msg-row.theirs{align-self:flex-start;align-items:flex-start;}
     .msg-sender{font-size:10px;color:#94a3b8;margin-bottom:2px;padding:0 3px;}
     .msg-bubble{
-        padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.55;
-        word-break:break-word;max-width:100%;
+        padding:8px 12px;border-radius:6px;font-size:13px;line-height:1.55;
+        word-break:break-word;max-width:100%;font-family:'Microsoft YaHei','微软雅黑',sans-serif;
     }
     .msg-row.mine .msg-bubble{
-        background:#2563eb;color:#fff;border-bottom-right-radius:4px;
+        background:#2563eb;color:#fff;border-bottom-right-radius:2px;
         cursor:pointer;position:relative;
     }
     .msg-recall-tip{
@@ -154,13 +154,13 @@ function initChat(role) {
         flex-shrink:0;background:#fff;
     }
     .chat-input{
-        flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:12px;
-        font-size:13px;font-family:inherit;outline:none;resize:none;
+        flex:1;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:4px;
+        font-size:13px;font-family:'Microsoft YaHei','微软雅黑',sans-serif;outline:none;resize:none;
         max-height:80px;line-height:1.45;transition:0.2s;background:#fafcff;
     }
-    .chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,0.1);background:#fff;}
+    .chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,0.08);background:#fff;}
     .chat-send-btn{
-        width:36px;height:36px;border-radius:50%;background:#2563eb;color:#fff;
+        width:36px;height:36px;border-radius:4px;background:#2563eb;color:#fff;
         border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;
         justify-content:center;transition:0.2s;flex-shrink:0;
     }
@@ -215,7 +215,7 @@ function initChat(role) {
     fab.className = 'chat-fab';
     fab.id = 'chatFab';
     fab.title = '双击打开聊天';
-    fab.innerHTML = '消息<span class="chat-unread-dot" id="chatUnreadDot"></span>';
+    fab.innerHTML = '<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 36 36\'><circle cx=\'18\' cy=\'18\' r=\'18\' fill=\'%232563eb\'/><text x=\'18\' y=\'24\' text-anchor=\'middle\' font-size=\'20\'>💬</text></svg>" style="width:30px;height:30px;" alt="chat"/><span class="chat-unread-dot" id="chatUnreadDot"></span>';
 
     // Draggable FAB: single click/drag = move, double click = open
     let _fabDragging = false, _fabMoved = false, _fabStartX = 0, _fabStartY = 0, _fabOrigX = 0, _fabOrigY = 0;
@@ -378,6 +378,17 @@ function initChat(role) {
         _emojiOpen = !_emojiOpen;
         document.getElementById('emojiPicker').classList.toggle('open', _emojiOpen);
     };
+
+    // 点击聊天消息区域关闭表情面板
+    document.addEventListener('click', function(e) {
+        if (!_emojiOpen) return;
+        const picker = document.getElementById('emojiPicker');
+        const toolbar = document.getElementById('chatToolbar');
+        if (picker && toolbar && !picker.contains(e.target) && !toolbar.contains(e.target)) {
+            _emojiOpen = false;
+            picker.classList.remove('open');
+        }
+    });
 
     window._insertEmoji = function(e) {
         const inp = document.getElementById('chatInput');
