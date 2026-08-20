@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《韧云智护》智能康复训练监视系统</title>
+  <!-- 引入你源码中使用的库 -->
+  <script src="https://cdn.jsdelivr.net/npm/mqtt@5.0.0/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-primary: #f8f9fa;
+      --navy-blue: #1A365D;
+      --accent-green: #2ecc71;
+      --accent-yellow: #f1c40f;
+      --accent-red: #e74c3c;
+      --text-dark: #2c3e50;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'SimSun','宋体',serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-dark);
+      padding: 20px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      margin: 0 auto;
+    }
+
+    header {
+      background-color: var(--navy-blue);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: minmax(240px, 320px) 1fr;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    /* 左侧动作选择面板 */
+    .panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: var(--navy-blue);
+      border-bottom: 2px solid #edf2f7;
+      padding-bottom: 8px;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 18px;
+      margin-bottom: 12px;
+      border: 2px solid #edf2f7;
+      border-radius: 10px;
+      background: none;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-dark);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      border-color: var(--navy-blue);
+      background-color: #f7fafc;
+    }
+
+    .action-btn.active {
+      background-color: var(--navy-blue);
+      color: white;
+      border-color: var(--navy-blue);
+    }
+
+    /* 右侧主视窗布局 */
+    .monitor-display {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .status-hero {
+      background: #94a3b8;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .status-title {
+      font-size: 54px;
+      font-weight: 800;
+      margin: 20px 0;
+      color: #95a5a6;
+    }
+
+    .timer-display {
+      font-size: clamp(48px, 8vw, 96px);
+      font-family: monospace;
+      font-weight: bold;
+      color: var(--navy-blue);
+      letter-spacing: -2px;
+    }
+
+    .advice-box {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--navy-blue);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 15px 40px;
+      border-radius: 30px;
+      margin-top: 20px;
+      max-width: 85%;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* 数据监测大卡片矩阵 */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      padding: 25px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+      overflow: hidden;
+      word-break: break-word;
+    }
+.metric-label {
+      font-size: 15px;
+      color: #7f8c8d;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: bold;
+      color: var(--navy-blue);
+    }
+
+    /* 实时曲线区域 */
+    .chart-panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-top: 10px;
+    }
+
+    /* 状态指示灯 */
+    .indicator {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: #bdc3c7;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+
+    /* AI 报告按钮 */
+    .ai-btn {
+      width: 100%;
+      padding: 16px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1A365D, #2c5282);
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .ai-btn:hover {
+      opacity: 0.9;
+    }
+
+    .ai-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* AI 报告弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 22px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .modal-header h3 {
+      color: var(--navy-blue);
+      font-size: 17px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      line-height: 1;
+      color: #7f8c8d;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 22px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 15px;
+      color: var(--text-dark);
+    }
+
+    /* ============ 响应式布局 ============ */
+
+    /* 超宽屏 / 缩放比例很小时 */
+    @media (min-width: 1800px) {
+      body {
+        padding: 40px 60px;
+        font-size: 18px;
+      }
+
+      header {
+        padding: 28px 36px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .container {
+        grid-template-columns: 380px 1fr;
+        gap: 30px;
+      }
+
+      .panel {
+        padding: 35px;
+        border-radius: 16px;
+      }
+
+      h2 {
+        font-size: 22px;
+        margin-bottom: 24px;
+      }
+
+      .action-btn {
+        padding: 22px;
+        font-size: 18px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+      }
+
+      .status-hero {
+        padding: 60px;
+        border-radius: 16px;
+        min-height: 300px;
+      }
+
+      .advice-box {
+        font-size: 20px;
+        padding: 18px 48px;
+      }
+
+      .metrics-grid {
+        gap: 24px;
+      }
+
+      .metric-card {
+        padding: 30px 24px;
+        border-radius: 14px;
+      }
+
+      .metric-label {
+        font-size: 17px;
+        margin-bottom: 12px;
+      }
+
+      .chart-panel {
+        padding: 30px;
+        border-radius: 16px;
+      }
+
+      .ai-btn {
+        padding: 20px;
+        font-size: 17px;
+        border-radius: 12px;
+      }
+    }
+
+    /* 2K+ 屏幕 / 缩放50%左右 */
+    @media (min-width: 2400px) {
+      body {
+        padding: 50px 80px;
+        font-size: 20px;
+      }
+
+      header {
+        padding: 32px 44px;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+
+      .container {
+        grid-template-columns: 440px 1fr;
+        gap: 40px;
+      }
+
+      .panel {
+        padding: 40px;
+      }
+
+      h2 {
+        font-size: 26px;
+      }
+
+      .action-btn {
+        padding: 26px;
+        font-size: 20px;
+        margin-bottom: 18px;
+      }
+
+      .status-hero {
+        padding: 80px;
+        min-height: 380px;
+      }
+
+      .advice-box {
+        font-size: 22px;
+        padding: 22px 56px;
+      }
+
+      .metric-card {
+        padding: 36px 28px;
+      }
+
+      .metric-label {
+        font-size: 19px;
+      }
+
+      .chart-panel {
+        padding: 36px;
+      }
+
+      .ai-btn {
+        padding: 24px;
+        font-size: 19px;
+      }
+    }
+
+    /* 大平板 / 小桌面 */
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: minmax(220px, 280px) 1fr;
+      }
+
+      .status-hero {
+        padding: 30px;
+      }
+
+      .status-title {
+        font-size: 44px;
+      }
+    }
+
+    /* 平板竖屏 */
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .panel > div:first-child {
+        flex: 1;
+        min-width: 280px;
+      }
+
+      .panel > div:last-child {
+        flex: 1;
+        min-width: 280px;
+        margin-top: 0;
+      }
+
+      .panel h2 {
+        width: 100%;
+      }
+
+      .action-btn {
+        margin-bottom: 8px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .status-hero {
+        padding: 30px 20px;
+      }
+    }
+
+    /* 大手机 / 小平板 */
+    @media (max-width: 680px) {
+      body {
+        padding: 12px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 16px;
+        border-radius: 10px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      .panel {
+        flex-direction: column;
+        padding: 18px;
+        border-radius: 10px;
+      }
+
+      .panel > div:first-child,
+      .panel > div:last-child {
+        min-width: 100%;
+      }
+
+      .panel > div:last-child {
+        margin-top: 20px;
+        border-top: 1px solid #edf2f7;
+        padding-top: 15px;
+      }
+
+      .action-btn {
+        padding: 14px;
+        font-size: 15px;
+        border-radius: 8px;
+      }
+
+      .status-hero {
+        padding: 24px 16px;
+        border-radius: 10px;
+      }
+
+      .advice-box {
+        font-size: 14px;
+        padding: 12px 18px;
+        max-width: 100%;
+        border-radius: 20px;
+        margin-top: 14px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .metric-card {
+        padding: 16px 10px;
+        border-radius: 10px;
+      }
+
+      .metric-value {
+        font-size: 28px;
+      }
+
+      .metric-label {
+        font-size: 13px;
+      }
+
+      .chart-panel {
+        padding: 16px;
+        border-radius: 10px;
+      }
+
+      .ai-btn {
+        padding: 14px;
+        font-size: 14px;
+      }
+
+      /* 弹窗全屏化 */
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+
+      .modal-box {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 16px 16px 0 0;
+      }
+
+      .modal-body {
+        font-size: 14px;
+        padding: 18px;
+      }
+    }
+
+    /* 小手机 */
+    @media (max-width: 400px) {
+      body {
+        padding: 8px;
+      }
+
+      header {
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: 16px;
+      }
+
+      .container {
+        gap: 12px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .metric-value {
+        font-size: 24px;
+      }
+
+      .timer-display {
+        font-size: 40px;
+      }
+
+      .advice-box {
+        font-size: 13px;
+        padding: 10px 14px;
+      }
+
+      .action-btn {
+        padding: 12px;
+        font-size: 14px;
+      }
+    }
+
+    /* 超小屏幕 */
+    @media (max-width: 340px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>《韧云智护》智能康复训练监视系统</h1>
+      <p style="font-size: 13px; color: #cbd5e0; margin-top: 5px;">基于高精度双核惯导算法的ACL术后评估方案</p >
+    </div>
+    <div style="display: flex; align-items: center; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 30px;">
+      <span class="indicator" id="conn-indicator"></span>
+      <span id="conn-status" style="font-weight: 600; font-size: 14px;">网络建立中...</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 左侧：动作选择 -->
+    <div class="panel">
+      <div>
+        <h2>康复动作选择</h2>
+        <button class="action-btn active" data-mode="squat">1. 靠墙静蹲</button>
+        <button class="action-btn" data-mode="stance">2. 单脚支撑</button>
+        <button class="action-btn" data-mode="sideleg">3. 侧抬腿训练</button>
+        <button class="action-btn" data-mode="legraise">4. 直腿抬高 (SLR)</button>
+      </div>
+      
+      <div style="margin-top: 30px; font-size: 13px; color: #7f8c8d; line-height: 1.6; border-top: 1px solid #edf2f7; padding-top: 15px;">
+        <p><strong> 智能语音播报开启：</strong></p >
+        <p>系统已连接至云端，请将硬件传感器佩戴妥当。系统将自动识别姿态并进行实时语音纠错指引。</p >
+      </div>
+    </div>
+
+    <!-- 右侧：核心显示区 -->
+    <div class="monitor-display">
+      <!-- 状态大看板（完美复刻图片中灰绿大视窗样式） -->
+      <div class="status-hero" id="status-card">
+        <div class="timer-display" id="timer">00.0s</div>
+        <div class="advice-box" id="advice-text">正在等待硬件连接与数据上传...</div>
+      </div>
+
+      <!-- 数据监测矩阵 -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">大腿 Pitch (倾角)</div>
+          <div class="metric-value" id="val-pitch">0.0°</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">膝关节夹角 (KED)</div>
+          <div class="metric-value" id="val-ked">0.0°</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">大腿 Roll (外展角)</div>
+          <div class="metric-value" id="val-roll">0.0°</div>
+        </div>
+      </div>
+
+      <!-- 实时变化曲线 -->
+      <div class="chart-panel">
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--navy-blue);"> 实时关节姿态动态解算曲线</h3>
+        <div style="height: clamp(180px, 25vw, 260px); position: relative;">
+          <canvas id="poseChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    //  1. 采用你源码完全一致的本地私有/公有 MQTT 连接架构
+    // =========================================================================
+    const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; 
+    const topic = 'iot/rehab/renyun/data';
+    
+    let currentMode = 'squat';
+    let pitchHistory = [], rollHistory = [], timeLabels = [], chart;
+    let timerInterval = null;
+    let correctStartTime = null;
+    let lastFeedback = "";
+
+    const modeNames = { squat: "靠墙静蹲", stance: "单脚支撑", sideleg: "侧抬腿训练", legraise: "直腿抬高" };
+
+    const client = mqtt.connect(brokerUrl);
+
+    // =========================================================================
+    //  2. 语音播报核心逻辑
+    // =========================================================================
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 1.1;
+        utterance.pitch = 1.0;
+        speechSynthesis.cancel(); // 强行插播最新提示
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    // =========================================================================
+    //  3. 动作计时器
+    // =========================================================================
+    function updateTimer(isCorrect) {
+      const timerEl = document.getElementById('timer');
+      if (isCorrect) {
+        if (!correctStartTime) {
+          correctStartTime = Date.now();
+          if (timerInterval) clearInterval(timerInterval);
+          timerInterval = setInterval(() => {
+            const elapsed = ((Date.now() - correctStartTime) / 1000).toFixed(1);
+            timerEl.textContent = elapsed + "s";
+          }, 100);
+        }
+      } else {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        correctStartTime = null;
+        timerEl.textContent = `00.0s`;
+      }
+    }
+
+    // =========================================================================
+    //  4. 模式切换控制
+    // =========================================================================
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        
+        correctStartTime = null;
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('timer').textContent = '00.0s';
+
+        speak(`切换至 ${modeNames[currentMode]} 模式，请保持标准姿态。`);
+        
+        // 重置大卡片为灰绿底色
+        document.getElementById("status-card").style.backgroundColor = "#94a3b8";
+        document.getElementById("advice-text").textContent = `已切换，等待进行${modeNames[currentMode]}数据解算。`;
+      });
+    });
+
+    // =========================================================================
+    //  5. MQTT 通信监听与解算状态机
+    // =========================================================================
+    client.on('connect', () => {
+      client.subscribe(topic);
+      document.getElementById('conn-status').textContent = '已连入网络通道 (10Hz)';
+      document.getElementById('conn-indicator').style.backgroundColor = '#2ecc71';
+      document.getElementById('advice-text').textContent = '网络通道就绪，请摆正起始姿态开始训练。';
+    });
+
+    client.on('message', (_, message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        // 兼容处理不同的 JSON 键名
+        const pitch = parseFloat(data.pitch || data.thigh_pitch || 0);
+        const roll = parseFloat(data.roll || data.thigh_roll || 0);
+        const ked = parseFloat(data.ked || 0);
+
+        // 更新仪表盘数值
+        document.getElementById('val-pitch').textContent = pitch.toFixed(1) + '°';
+        document.getElementById('val-roll').textContent = roll.toFixed(1) + '°';
+        document.getElementById('val-ked').textContent = ked.toFixed(1) + '°';
+
+        const cardEl = document.getElementById('status-card');
+        const adviceEl = document.getElementById('advice-text');
+        
+        let feedback = "数据正常传输";
+        let isCorrect = false;
+        let uiState = "neutral"; // neutral(灰蓝), standard(绿), adjust(黄), danger(红)
+
+        const absPitch = Math.abs(pitch);
+        const absRoll = Math.abs(roll);
+
+        // =======  核心康复临床解算算法优化 =======
+        if (currentMode === 'squat') { // 1. 靠墙静蹲
+          if (absPitch >= 30 && absPitch <= 65) {
+            feedback = "静蹲姿态优秀，请保持均匀呼吸";
+            isCorrect = true;
+            uiState = "standard";
+          } else if (absPitch > 65 && absPitch <= 80) {
+            feedback = "下蹲角度偏深，若膝盖疼痛请稍稍起身";
+            isCorrect = true;
+            uiState = "adjust";
+          } else if (absPitch > 80) {
+            feedback = "危险！蹲姿过深易致韧带受损，请立即起身";
+            isCorrect = false;
+            uiState = "danger";
+          } else {
+            feedback = "请背靠墙壁，下蹲至合理角度";
+            isCorrect = false;
+            uiState = "neutral";
+          }
+
+        } else if (currentMode === 'legraise') { // 2. 直腿抬高 (已根据真实数据修正)
+          // 真实情况：平躺 Pitch 高（~70°+），抬腿后 Pitch 降低
+          if (absPitch >= 45 && absPitch <= 65) {
+            feedback = "直抬腿动作标准，保持股四头肌紧绷";
+            isCorrect = true;
+            uiState = "standard";
+          } else if (absPitch < 45) {
+            feedback = "抬腿高度过高，易引发腰部代偿，请稍放低";
+            isCorrect = false;
+            uiState = "danger";
+          } else if (absPitch > 70) {
+            feedback = "请绷紧大腿，平稳抬高至合适高度";
+            isCorrect = false;
+            uiState = "neutral";
+          } else {
+            feedback = "继续调整抬腿高度";
+            isCorrect = false;
+            uiState = "adjust";
+          }
+
+        } else if (currentMode === 'stance') { // 3. 单脚支撑 (已根据真实数据修正)
+          // 真实情况：正常站立时 Roll 本身很大（约 -90°），主要看 Pitch 是否稳定
+          if (absPitch <= 12) {
+            if (absPitch <= 6) {
+              feedback = "核心控制极佳，本体感觉平衡优秀";
+              isCorrect = true;
+              uiState = "standard";
+            } else {
+              feedback = "重心轻微摇晃，请微收腹部核心";
+              isCorrect = true;
+              uiState = "adjust";
+            }
+          } else {
+            feedback = "重心失控！请手扶椅背保护，安全第一";
+            isCorrect = false;
+            uiState = "danger";
+          }
+
+        } else if (currentMode === 'sideleg') { // 4. 侧抬腿训练
+          if (absRoll >= 23 && absRoll <= 45) {
+            if (absPitch <= 12) {
+              feedback = "外展角度合格，臀中肌持续发力";
+              isCorrect = true;
+              uiState = "standard";
+            } else {
+              feedback = "身体前后倾斜！请保持躯干侧卧成一直线";
+              isCorrect = false;
+              uiState = "adjust";
+            }
+          } else if (absRoll > 45) {
+            feedback = "侧抬过高，请收低角度，防止腰椎借力";
+            isCorrect = false;
+            uiState = "danger";
+          } else {
+            feedback = "伸直膝关节，平稳向外侧方抬起大腿";
+            isCorrect = false;
+            uiState = "neutral";
+          }
+        }
+
+        // =======  智能看板背景与文字色彩转换 =======
+        adviceEl.textContent = feedback;
+        if (uiState === "standard") {
+          cardEl.style.backgroundColor = "var(--accent-green)";
+          cardEl.style.color = "white";
+          document.getElementById("timer").style.color = "white";
+        } else if (uiState === "adjust") {
+          cardEl.style.backgroundColor = "var(--accent-yellow)";
+          cardEl.style.color = "var(--text-dark)";
+          document.getElementById("timer").style.color = "var(--navy-blue)";
+        } else if (uiState === "danger") {
+          cardEl.style.backgroundColor = "var(--accent-red)";
+          cardEl.style.color = "white";
+          document.getElementById("timer").style.color = "white";
+        } else {
+          cardEl.style.backgroundColor = "#94a3b8"; // 回归默认灰绿色
+          cardEl.style.color = "var(--navy-blue)";
+          document.getElementById("timer").style.color = "var(--navy-blue)";
+        }
+
+        // 执行防卡顿高品质语音播报
+        if (feedback !== lastFeedback) {
+          speak(feedback);
+          lastFeedback = feedback;
+        }
+
+        // 更新精细计时器
+        updateTimer(isCorrect);
+
+        // =======  实时曲线渲染（Chart.js） =======
+        pitchHistory.push(pitch);
+        rollHistory.push(roll);
+        timeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
+        
+        if (pitchHistory.length > 80) { // 限制图表点数，防止长时间训练造成页面卡死
+          pitchHistory.shift(); 
+          rollHistory.shift(); 
+          timeLabels.shift();
+        }
+        if (chart) chart.update();
+
+      } catch(e) {
+        console.error("解析硬件数据包或状态机运行出错: ", e);
+      }
+    });
+
+    // =========================================================================
+    //  6. 图表渲染器初始化
+    // =========================================================================
+    function initChart() {
+      chart = new Chart(document.getElementById('poseChart'), {
+        type: 'line',
+        data: {
+          labels: timeLabels,
+          datasets: [
+            { label: 'Pitch (俯仰角)', data: pitchHistory, borderColor: '#1A365D', tension: 0.4, borderWidth: 3, pointRadius: 0 },
+            { label: 'Roll (横滚角)', data: rollHistory, borderColor: '#ff8800', tension: 0.4, borderWidth: 3, pointRadius: 0 }
+          ]
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          plugins: {
+            legend: { position: 'top' }
+          },
+          scales: { 
+            y: { min: -90, max: 90, grid: { color: '#edf2f7' } },
+            x: { grid: { display: false } }
+          } 
+        }
+      });
+    }
+
+    window.onload = initChart;
+  </script>
+</body>
+</html>

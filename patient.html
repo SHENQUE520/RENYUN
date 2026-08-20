@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护 · 康复中心</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.0.0/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:#f0f5fc;}
+
+/* ── Three-column layout ── */
+.patient-body{
+    flex:1;display:grid;
+    grid-template-columns:220px 1fr 320px;
+    gap:0;overflow:hidden;min-height:0;
+}
+
+/* ══ LEFT SIDEBAR ══ */
+.sidebar{
+    background:#fff;border-right:1px solid #e9f0fa;
+    display:flex;flex-direction:column;overflow:hidden;
+    padding:20px 0 16px;
+}
+.sidebar-user{
+    padding:0 18px 18px;border-bottom:1px solid #f1f5f9;margin-bottom:10px;
+}
+.sidebar-avatar{
+    width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1a4b8c);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:700;margin-bottom:10px;
+}
+.sidebar-uname{font-size:15px;font-weight:600;color:#0a2540;}
+.sidebar-meta{font-size:12px;color:#94a3b8;margin-top:2px;}
+.sidebar-doctor{
+    font-size:12px;color:#2563eb;background:#eff6ff;
+    padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;
+}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0 10px;}
+.nav-group-label{
+    font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.8px;
+    padding:14px 8px 6px;text-transform:uppercase;
+}
+.nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;
+    border-radius:11px;cursor:pointer;transition:0.18s;margin-bottom:2px;
+    font-size:14px;color:#475569;font-weight:500;border:none;background:none;
+    width:100%;text-align:left;
+}
+.nav-item:hover{background:#f1f5f9;color:#1e293b;}
+.nav-item.active{background:#dbeafe;color:#2563eb;}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-item .nav-badge{
+    margin-left:auto;background:#ef4444;color:#fff;
+    font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center;
+}
+.nav-item .nav-badge.blue{background:#2563eb;}
+.sidebar-footer{padding:12px 10px 0;border-top:1px solid #f1f5f9;margin-top:auto;}
+
+/* ══ CENTER PANEL ══ */
+.center-panel{
+    display:flex;flex-direction:column;overflow:hidden;
+    background:#f0f5fc;
+}
+.center-scroll{flex:1;overflow-y:auto;padding:22px 20px 28px;}
+
+/* View panels — only active one shown */
+.view-panel{display:none;}
+.view-panel.active{display:block;}
+
+.monitor-card{
+    background:#fff;border-radius:18px;border:1px solid #e9f0fa;
+    box-shadow:0 4px 16px rgba(0,0,0,0.03);padding:22px 24px 20px;
+    display:flex;flex-direction:column;
+}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.chart-header .ctitle{font-size:16px;font-weight:600;color:#0a2540;}
+.chart-header .cmeta{display:flex;align-items:center;gap:8px;}
+.update-tag{font-size:11px;color:#94a3b8;background:#f1f5f9;padding:3px 11px;border-radius:20px;}
+.chart-wrapper{height:260px;position:relative;margin:6px 0 10px;}
+.monitor-hint{
+    background:#f0f7ff;border-radius:10px;padding:10px 15px;font-size:13px;
+    color:#1e4a7a;border-left:3px solid #2563eb;display:flex;align-items:center;gap:9px;
+}
+
+/* Stats row in center */
+.center-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+.cstat{
+    background:#fff;border-radius:14px;border:1px solid #e9f0fa;
+    padding:14px 16px;display:grid;column-gap:12px;align-items:center;
+    grid-template-columns:auto 1fr;grid-template-areas:"icon num" "icon lbl";
+}
+.cstat .cicon{
+    grid-area:icon;width:38px;height:38px;border-radius:10px;background:#dbeafe;
+    display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+}
+.cstat .cnum{grid-area:num;font-size:22px;font-weight:700;color:#0a2540;line-height:1;}
+.cstat .clbl{grid-area:lbl;font-size:12px;color:#64748b;margin-top:2px;}
+@media(max-width:860px){
+    .cstat{
+        padding:14px 12px;row-gap:8px;
+        grid-template-areas:"icon lbl" "num num";
+    }
+    .cstat .cicon{width:30px;height:30px;font-size:14px;}
+    .cstat .clbl{margin-top:0;}
+    .cstat .cnum{text-align:center;font-size:20px;}
+}
+
+/* Section headings in center */
+.section-heading{
+    font-size:14px;font-weight:600;color:#0a2540;margin:20px 0 10px;
+    display:flex;align-items:center;gap:6px;
+}
+
+/* Record mini-list */
+.record-mini{background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:hidden;}
+.record-mini-row{
+    display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f8fbff;
+    font-size:13px;gap:6px;
+}
+.record-mini-row:last-child{border-bottom:none;}
+.record-mini-row .rtime{color:#94a3b8;width:60px;flex-shrink:0;}
+.record-mini-row .rname{color:#0a2540;font-weight:500;flex:1;}
+.record-mini-row .rpitch{color:#64748b;flex-shrink:0;}
+
+/* ══ RIGHT PANEL ══ */
+.right-panel{
+    background:#fff;border-left:1px solid #e9f0fa;
+    display:flex;flex-direction:column;overflow:hidden;
+}
+.right-scroll{flex:1;overflow-y:auto;padding:18px 16px 24px;}
+
+/* Calendar */
+.cal-section{margin-bottom:20px;}
+.cal-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-nav .cal-month{font-size:13px;font-weight:600;color:#0a2540;}
+.cal-nav button{
+    background:none;border:1px solid #e2e8f0;width:26px;height:26px;
+    border-radius:8px;cursor:pointer;color:#64748b;font-size:14px;
+    display:flex;align-items:center;justify-content:center;transition:0.15s;
+}
+.cal-nav button:hover{background:#f1f5f9;border-color:#cbd5e1;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day-label{font-size:10px;font-weight:600;color:#94a3b8;text-align:center;padding:3px 0;}
+.cal-cell{
+    aspect-ratio:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;border-radius:8px;position:relative;
+}
+.cal-cell .cnum{font-size:11px;font-weight:500;color:#64748b;line-height:1;}
+.cal-cell .cdot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+.cal-cell.today{border:1.5px solid #2563eb;}
+.cal-cell.today .cnum{color:#2563eb;font-weight:700;}
+.cal-cell.done{background:#f0fdf4;}
+.cal-cell.done .cnum{color:#16a34a;}
+.cal-cell.missed{background:#fff5f5;}
+.cal-cell.missed .cnum{color:#dc2626;}
+.cal-cell.future .cnum{color:#cbd5e1;}
+.cal-cell.empty{pointer-events:none;}
+.cal-legend{display:flex;gap:12px;margin-top:8px;}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8;}
+.cal-legend-dot{width:8px;height:8px;border-radius:50%;}
+
+/* Tasks */
+.tasks-section{}
+.tasks-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.task-item{
+    padding:11px 14px;border-radius:12px;background:#f8fbff;
+    border:1px solid #eef2f6;margin-bottom:8px;
+}
+.task-item-head{display:flex;align-items:center;justify-content:space-between;}
+.task-item-name{font-size:14px;font-weight:600;color:#0a2540;}
+.task-item-count{font-size:12px;color:#64748b;margin-top:2px;}
+.task-item-key{font-size:11px;color:#2563eb;margin-top:4px;}
+.task-item-detail{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.5;}
+.task-empty{color:#94a3b8;font-size:13px;text-align:center;padding:20px 0;}
+
+.checkin-btn{
+    width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
+    border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;
+    transition:0.25s;margin-top:4px;
+}
+.checkin-btn:hover{background:#1d4ed8;box-shadow:0 6px 18px rgba(37,99,235,0.25);transform:translateY(-1px);}
+.checkin-btn:disabled{background:#94a3b8;cursor:not-allowed;box-shadow:none;transform:none;}
+.checkin-btn.done-btn{background:#22c55e;}
+.checkin-btn.done-btn:hover{background:#16a34a;box-shadow:0 6px 18px rgba(34,197,94,0.25);}
+
+/* Streak bar */
+.streak-bar{
+    background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;
+    padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;
+    border:1px solid #bfdbfe;
+}
+.streak-num{font-size:24px;font-weight:700;color:#2563eb;}
+.streak-lbl{font-size:12px;color:#1d4ed8;line-height:1.4;}
+
+@media(max-width:1100px){
+    .patient-body{grid-template-columns:200px 1fr 290px;}
+}
+@media(max-width:860px){
+    .patient-body{grid-template-columns:1fr;}
+    .sidebar,.right-panel{display:none;}
+    .center-panel{border-radius:0;}
+    .center-scroll{padding-bottom:70px;}
+}
+
+/* ── Mobile bottom nav ── */
+.mobile-bottom-nav{
+    display:none;position:fixed;bottom:0;left:0;right:0;height:58px;
+    background:#fff;border-top:1px solid #e9f0fa;z-index:1100;
+    justify-content:space-around;align-items:center;
+    box-shadow:0 -2px 12px rgba(0,0,0,0.05);
+}
+@media(max-width:860px){
+    .mobile-bottom-nav{display:flex;}
+    .chat-fab{display:none !important;}
+}
+.mob-nav-btn{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    background:none;border:none;color:#64748b;font-size:10px;
+    cursor:pointer;padding:6px 10px;border-radius:8px;transition:0.15s;
+}
+.mob-nav-btn .mob-icon{font-size:20px;}
+.mob-nav-btn.active{color:#2563eb;}
+.mob-nav-btn:hover{color:#2563eb;}
+
+/* ── Mobile doctor info bar ── */
+.mobile-doctor-info{
+    display:none;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);
+    border-radius:16px;padding:14px 18px;margin-bottom:14px;
+    font-size:13px;color:#1e4a7a;align-items:center;gap:10px;
+    border:1px solid #bfdbfe;box-shadow:0 2px 8px rgba(37,99,235,0.08);
+}
+.mobile-doctor-info .doc-badge{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;
+    padding:4px 10px;border-radius:20px;
+    font-size:11px;font-weight:600;letter-spacing:0.3px;
+    box-shadow:0 2px 6px rgba(37,99,235,0.3);
+}
+.mobile-doctor-info span{font-weight:500;}
+@media(max-width:860px){
+    .mobile-doctor-info{display:flex;}
+}
+
+/* AI 报告弹窗 */
+.ai-modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    align-items:center;justify-content:center;z-index:1500;padding:20px;
+}
+.ai-modal-overlay.open{display:flex;}
+.ai-modal-box{
+    background:#fff;border-radius:16px;width:100%;max-width:720px;
+    max-height:85vh;display:flex;flex-direction:column;
+    box-shadow:0 10px 40px rgba(0,0,0,0.2);
+    overflow:hidden;
+}
+.ai-modal-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;border-bottom:1px solid #edf2f7;
+    background:#fff;z-index:2;flex-shrink:0;
+}
+.ai-modal-header h3{color:#1a4b8c;font-size:17px;margin:0;}
+.ai-modal-close{background:none;border:none;font-size:22px;color:#7f8c8d;cursor:pointer;}
+.ai-modal-scroll{
+    flex:1;overflow-y:auto;min-height:0;
+}
+.ai-modal-body{
+    padding:22px 28px;white-space:pre-wrap;
+    line-height:1.4;font-size:16px;color:#1e293b;
+}
+.ai-modal-progress{
+    height:3px;background:#e9f0fa;flex-shrink:0;overflow:hidden;
+}
+.report-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.report-chart-card{background:#f8fbff;border-radius:8px;padding:10px 12px;border:1px solid #eef2f6;}
+.report-chart-title{font-size:11px;color:#94a3b8;margin-bottom:4px;}
+.report-chart-canvas-wrap{height:170px;position:relative;}
+@media(max-width:600px){
+    .report-chart-grid{grid-template-columns:1fr;}
+}
+.ai-modal-progress .bar{
+    height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);
+    animation:progressAnim 8s ease-out forwards;
+}
+@keyframes progressAnim{0%{width:0%}100%{width:95%}}
+.ai-report-fab{display:none;}
+
+/* ══ MQTT 实时监测样式 ══ */
+:root{--accent-green:#2ecc71;--accent-yellow:#f1c40f;--accent-red:#e74c3c;}
+
+/* ── Demo video grid ── */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.demo-grid{grid-template-columns:1fr;}}
+.demo-card{
+    background:#fff;border-radius:14px;border:1px solid #e9f0fa;
+    overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.demo-title{
+    font-size:15px;font-weight:600;color:#0a2540;
+    padding:14px 16px 8px;display:flex;align-items:center;gap:6px;
+}
+.demo-video-wrap{
+    width:100%;aspect-ratio:16/9;background:#000;position:relative;
+}
+.demo-video-wrap video{width:100%;height:100%;object-fit:contain;}
+.demo-placeholder{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#94a3b8;font-size:12px;text-align:center;padding:10px;
+}
+.demo-desc{
+    padding:10px 16px 14px;font-size:12px;color:#64748b;line-height:1.6;
+}
+.mqtt-conn-bar{
+    display:flex;align-items:center;gap:8px;padding:10px 16px;
+    background:#fff;border-radius:12px;border:1px solid #e9f0fa;margin-bottom:14px;
+}
+.mqtt-conn-bar .dot{width:10px;height:10px;border-radius:50%;background:#bdc3c7;flex-shrink:0;}
+.mqtt-conn-bar .dot.connected{background:#2ecc71;}
+#mqttConnStatus{font-size:13px;color:#64748b;font-weight:500;}
+.mqtt-action-btns{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+}
+.mqtt-mode-btn{
+    padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;
+    background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;
+    transition:0.2s;text-align:center;
+}
+.mqtt-mode-btn:hover{border-color:#2563eb;background:#f8fbff;}
+.mqtt-mode-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;}
+.mqtt-status-hero{
+    background:#94a3b8;border-radius:16px;padding:30px 20px;text-align:center;
+    min-height:160px;display:flex;flex-direction:column;justify-content:center;
+    align-items:center;transition:background-color 0.4s,color 0.4s;margin-bottom:14px;
+}
+.mqtt-timer-display{
+    font-size:clamp(40px,6vw,64px);font-family:monospace;font-weight:bold;
+    color:#1a365d;letter-spacing:-1px;
+}
+.mqtt-advice-box{
+    font-size:14px;font-weight:500;color:#1a365d;background:rgba(255,255,255,0.85);
+    padding:10px 24px;border-radius:24px;margin-top:14px;max-width:90%;
+    line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.mqtt-metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.mqtt-metric-card{
+    background:#fff;padding:16px 12px;border-radius:12px;text-align:center;
+    border:1px solid #e9f0fa;box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.mqtt-metric-label{font-size:12px;color:#7f8c8d;margin-bottom:6px;font-weight:500;}
+.mqtt-metric-value{font-size:clamp(20px,2.5vw,28px);font-weight:bold;color:#1a365d;}
+.mqtt-chart-panel{
+    background:#fff;border-radius:14px;padding:18px;border:1px solid #e9f0fa;
+    box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<header class="app-header">
+    <div class="left">
+        <a class="brand" href="patient.html"> 韧云智护<small>· 患者端</small></a>
+    </div>
+    <div class="right">
+        <a class="user-info" href="profile.html">
+            <div class="avatar" id="headerAvatar">张</div>
+            <div class="detail">
+                <div class="name" id="headerName">张明</div>
+                <div class="role-tag"> 使用者</div>
+            </div>
+        </a>
+        <button class="nav-btn" onclick="logout()">退出</button>
+    </div>
+</header>
+
+<div class="patient-body">
+
+<!-- ══ LEFT SIDEBAR ══ -->
+<aside class="sidebar">
+    <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sideAvatar">张</div>
+        <div class="sidebar-uname" id="sideUname">张明</div>
+        <div class="sidebar-meta" id="sideMeta">男 · 28岁</div>
+        <div class="sidebar-doctor" id="sideDoctor">主治：李医生</div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-group-label">主要功能</div>
+        <button class="nav-item active" data-view="monitor" onclick="switchView('monitor',this)">
+            <span class="nav-icon"></span>动作监测
+        </button>
+        <button class="nav-item" data-view="overview" onclick="switchView('overview',this)">
+            <span class="nav-icon"></span>康复概览
+        </button>
+        <button class="nav-item" onclick="generatePatientReport()">
+            <span class="nav-icon"></span>生成报告
+        </button>
+        <button class="nav-item" data-view="chat" onclick="openChatFromNav()">
+            <span class="nav-icon"></span>与医生沟通
+        </button>
+        <button class="nav-item" data-view="demo" onclick="switchView('demo',this)">
+            <span class="nav-icon"></span>动作演示
+        </button>
+        <div class="nav-group-label">管理</div>
+        <button class="nav-item" data-view="records" onclick="switchView('records',this)">
+            <span class="nav-icon"></span>执行记录
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon"></span>个人信息
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        <button class="nav-item" style="color:#ef4444;" onclick="logout()">
+            <span class="nav-icon"></span>退出登录
+        </button>
+    </div>
+</aside>
+
+<!-- ══ CENTER PANEL ══ -->
+<main class="center-panel">
+    <div class="center-scroll">
+
+        <!-- Mobile doctor info (visible only ≤860px) -->
+        <div class="mobile-doctor-info" id="mobileDoctorInfo"></div>
+
+        <!-- View: Monitor -->
+        <div class="view-panel active" id="view-monitor">
+            <!-- Connection status -->
+            <div class="mqtt-conn-bar">
+                <span class="dot" id="mqttDot"></span>
+                <span id="mqttConnStatus">网络建立中...</span>
+            </div>
+
+            <!-- Action mode selection -->
+            <div class="mqtt-action-btns">
+                <button class="mqtt-mode-btn active" data-mode="squat">靠墙静蹲</button>
+                <button class="mqtt-mode-btn" data-mode="stance">单脚支撑</button>
+                <button class="mqtt-mode-btn" data-mode="sideleg">侧抬腿训练</button>
+                <button class="mqtt-mode-btn" data-mode="legraise">直腿抬高</button>
+            </div>
+
+            <!-- Status hero card -->
+            <div class="mqtt-status-hero" id="mqttStatusCard">
+                <div class="mqtt-timer-display" id="mqttTimer">00.0s</div>
+                <div class="mqtt-advice-box" id="mqttAdvice">正在等待硬件连接与数据上传...</div>
+            </div>
+
+            <!-- Metrics grid -->
+            <div class="mqtt-metrics-grid">
+                <div class="mqtt-metric-card">
+                    <div class="mqtt-metric-label">大腿 Pitch (倾角)</div>
+                    <div class="mqtt-metric-value" id="mqttValPitch">0.0°</div>
+                </div>
+                <div class="mqtt-metric-card">
+                    <div class="mqtt-metric-label">膝关节夹角 (KED)</div>
+                    <div class="mqtt-metric-value" id="mqttValKed">0.0°</div>
+                </div>
+                <div class="mqtt-metric-card">
+                    <div class="mqtt-metric-label">大腿 Roll (外展角)</div>
+                    <div class="mqtt-metric-value" id="mqttValRoll">0.0°</div>
+                </div>
+            </div>
+
+            <!-- Real-time chart -->
+            <div class="mqtt-chart-panel">
+                <h3 style="font-size:14px;margin-bottom:12px;color:#0a2540;"> 实时关节姿态动态曲线</h3>
+                <div style="height:220px;position:relative;">
+                    <canvas id="mqttPatientChart"></canvas>
+                </div>
+            </div>
+
+            <div class="center-stats" id="centerStats"></div>
+        </div>
+
+        <!-- View: Overview -->
+        <div class="view-panel" id="view-overview">
+            <div class="section-heading"> 康复概览</div>
+            <div class="center-stats" id="overviewStats"></div>
+            <div class="section-heading" style="margin-top:20px;"> 近期记录</div>
+            <div class="record-mini" id="recentRecords"></div>
+        </div>
+
+        <!-- View: Records -->
+        <div class="view-panel" id="view-records">
+            <div class="section-heading"> 动作执行记录</div>
+            <div style="background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:auto;">
+                <table class="record-table" id="fullRecordTable">
+                    <thead><tr>
+                        <th>时间</th><th>动作</th><th>最大角度</th><th>异常次数</th><th>状态</th>
+                    </tr></thead>
+                    <tbody id="fullRecordBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- View: Demo (动作演示) -->
+        <div class="view-panel" id="view-demo">
+            <div class="section-heading"> 动作演示</div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:16px;">观看标准动作视频，配合训练进行正确的康复练习。</p>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <div class="demo-title">靠墙静蹲</div>
+                    <div class="demo-video-wrap">
+                        <video controls preload="metadata" poster="">
+                            <source src="videos/squat.mp4" type="video/mp4">
+                            <p class="demo-placeholder">视频加载失败，请确认 videos/squat.mp4 文件存在</p>
+                        </video>
+                    </div>
+                    <div class="demo-desc">，双脚前移一步，缓慢下蹲至大腿与地面平行，保持30-60秒。</div>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-title">单脚支撑</div>
+                    <div class="demo-video-wrap">
+                        <video controls preload="metadata" poster="">
+                            <source src="videos/stance.mp4" type="video/mp4">
+                            <p class="demo-placeholder">视频加载失败，请确认 videos/stance.mp4 文件存在</p>
+                        </video>
+                    </div>
+                    <div class="demo-desc">单脚站立，另一脚抬离地面，保持平衡20-30秒，注意核心收紧。</div>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-title">侧腿抬高</div>
+                    <div class="demo-video-wrap">
+                        <video controls preload="metadata" poster="">
+                            <source src="videos/sideleg.mp4" type="video/mp4">
+                            <p class="demo-placeholder">视频加载失败，请确认 videos/sideleg.mp4 文件存在</p>
+                        </video>
+                    </div>
+                    <div class="demo-desc">侧卧位，上方腿伸直缓慢抬起至30-45度，保持2秒后放下，重复进行。</div>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-title">直腿抬高</div>
+                    <div class="demo-video-wrap">
+                        <video controls preload="metadata" poster="">
+                            <source src="videos/legraise.mp4" type="video/mp4">
+                            <p class="demo-placeholder">视频加载失败，请确认 videos/legraise.mp4 文件存在</p>
+                        </video>
+                    </div>
+                    <div class="demo-desc">仰卧位，膝关节绷直，缓慢抬高至30度左右，保持5秒后放下。</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ══ RIGHT PANEL ══ -->
+<aside class="right-panel">
+    <div class="right-scroll">
+
+        <!-- Streak -->
+        <div class="streak-bar" id="streakBar">
+            <div class="streak-num" id="streakNum">0</div>
+            <div class="streak-lbl">天连续打卡<br/><span style="font-weight:400;color:#64748b;">保持节奏，加油！</span></div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="cal-section">
+            <div class="cal-section-title"> 康复打卡日历</div>
+            <div class="cal-nav">
+                <button id="calPrev">&#8249;</button>
+                <span class="cal-month" id="calTitle"></span>
+                <button id="calNext">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#22c55e;"></div>已打卡</div>
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ef4444;"></div>未完成</div>
+                <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#2563eb;"></div>今天</div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="tasks-section">
+            <div class="tasks-section-title">
+                <span> 今日康复任务</span>
+                <span class="badge badge-gray" id="taskBadge">0项</span>
+            </div>
+            <div id="taskList"></div>
+            <button class="checkin-btn" id="checkinBtn"> 确认完成今日打卡</button>
+        </div>
+
+    </div>
+</aside>
+
+</div><!-- end patient-body -->
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="mob-nav-btn active" onclick="mobNav('monitor',this)">
+        <span class="mob-icon"></span>监测
+    </button>
+    <button class="mob-nav-btn" onclick="mobNav('overview',this)">
+        <span class="mob-icon"></span>概览
+    </button>
+    <button class="mob-nav-btn" onclick="openChatFromNav()">
+        <span class="mob-icon"></span>沟通
+    </button>
+    <button class="mob-nav-btn" onclick="mobNav('records',this)">
+        <span class="mob-icon"></span>记录
+    </button>
+    <button class="mob-nav-btn" onclick="generatePatientReport()">
+        <span class="mob-icon"></span>报告
+    </button>
+</nav>
+
+<!-- AI 报告弹窗 -->
+<div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
+    <div class="ai-modal-box" onclick="event.stopPropagation()">
+        <div class="ai-modal-header">
+            <h3> AI 康复评估报告</h3>
+            <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
+        </div>
+        <div class="ai-modal-progress" id="aiProgress" style="display:none;"><div class="bar"></div></div>
+        <div class="ai-modal-scroll">
+            <div class="ai-modal-body" id="aiModalBody">
+                正在生成报告...
+            </div>
+            <!--  图表区域 -->
+            <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
+                <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
+                </div>
+                <div class="report-chart-grid">
+                    <div class="report-chart-card">
+                        <div class="report-chart-title">正确率趋势</div>
+                        <div class="report-chart-canvas-wrap"><canvas id="reportChart1"></canvas></div>
+                    </div>
+                    <div class="report-chart-card">
+                        <div class="report-chart-title">康复雷达</div>
+                        <div class="report-chart-canvas-wrap"><canvas id="reportChart2"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+if (!requireAuth('patient')) throw new Error('unauth');
+
+// Always reload patient from DB to get latest tasks from doctor
+const p = getCurrentPatient();
+initHeader('patient');
+
+// Sidebar user info
+document.getElementById('sideAvatar').textContent = p.name.charAt(0);
+document.getElementById('sideUname').textContent = p.name;
+document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.age||'')+'岁';
+document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
+document.getElementById('mobileDoctorInfo').innerHTML = `<span class="doc-badge">主治医师</span><span>${p.doctor||'未分配'}</span>`;
+
+// ── View switching ────────────────────────────────────────
+function switchView(id, btn) {
+    document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    if (id === 'overview') renderOverview();
+    if (id === 'records') renderFullRecords();
+}
+window.switchView = switchView;
+
+function openChatFromNav() {
+    if (typeof _openChat === 'function') _openChat();
+    else document.getElementById('chatFab')?.click();
+}
+window.openChatFromNav = openChatFromNav;
+
+function mobNav(id, btn) {
+    document.querySelectorAll('.mob-nav-btn').forEach(el => el.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    switchView(id);
+}
+window.mobNav = mobNav;
+
+// ── Calendar ──────────────────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+const DAY_LABELS = ['日','一','二','三','四','五','六'];
+
+function renderCalendar() {
+    document.getElementById('calTitle').textContent = calYear + '年' + (calMonth+1) + '月';
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    DAY_LABELS.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'cal-day-label';
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = getTodayStr();
+    for (let i = 0; i < firstDay; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-cell empty';
+        grid.appendChild(el);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+        const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+        const rec = p.history.find(h => h.date === ds);
+        const isToday = ds === today;
+        const isPast = ds < today;
+        const cell = document.createElement('div');
+        const num = document.createElement('div');
+        num.className = 'cnum'; num.textContent = d;
+        cell.appendChild(num);
+        if (rec && rec.done) {
+            cell.className = 'cal-cell done';
+            const dot = document.createElement('div'); dot.className='cdot'; dot.style.background='#22c55e'; cell.appendChild(dot);
+        } else if (isPast && !isToday) {
+            cell.className = 'cal-cell missed';
+            const dot = document.createElement('div'); dot.className='cdot'; dot.style.background='#ef4444'; cell.appendChild(dot);
+        } else {
+            cell.className = 'cal-cell future';
+        }
+        if (isToday) cell.classList.add('today');
+        grid.appendChild(cell);
+    }
+}
+document.getElementById('calPrev').onclick = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
+document.getElementById('calNext').onclick = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
+renderCalendar();
+
+// ── Streak ────────────────────────────────────────────────
+function calcStreak() {
+    let streak = 0;
+    const today = getTodayStr();
+    const sorted = p.history.filter(h=>h.done).map(h=>h.date).sort().reverse();
+    let cursor = today;
+    for (const d of sorted) {
+        if (d === cursor) { streak++; const dt = new Date(cursor); dt.setDate(dt.getDate()-1); cursor = dt.toISOString().slice(0,10); }
+        else if (d < cursor) break;
+    }
+    document.getElementById('streakNum').textContent = streak;
+}
+calcStreak();
+
+// ── Tasks (from doctor) ───────────────────────────────────
+function renderTasks() {
+    const tasks = p.tasks || [];
+    document.getElementById('taskBadge').textContent = tasks.length + '项';
+    const container = document.getElementById('taskList');
+    if (!tasks.length) {
+        container.innerHTML = '<div class="task-empty">医生暂未分配任务</div>';
+        updateCheckinBtn(); return;
+    }
+    container.innerHTML = tasks.map((t, i) => {
+        const isDoing = i === 0 && !t.done;
+        const cls = t.done ? 'badge-green' : (isDoing ? 'badge-blue' : 'badge-gray');
+        const txt = t.done ? '已完成' : (isDoing ? '进行中' : '待完成');
+        return `<div class="task-item">
+            <div class="task-item-head">
+                <div>
+                    <div class="task-item-name">${t.name}</div>
+                    <div class="task-item-count">${t.count}${t.unit||'次'}</div>
+                    ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
+                    ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
+                </div>
+                <span class="badge ${cls}">${txt}</span>
+            </div>
+        </div>`;
+    }).join('');
+    updateCheckinBtn();
+}
+
+function updateCheckinBtn() {
+    const btn = document.getElementById('checkinBtn');
+    const todayRec = p.history.find(h => h.date === getTodayStr());
+    if (todayRec && todayRec.done) {
+        btn.textContent=' 今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
+    }
+    const allDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
+    btn.textContent = allDone ? ' 确认完成今日打卡' : ' 请先完成所有任务';
+    btn.className = 'checkin-btn'; btn.disabled = !allDone;
+}
+
+document.getElementById('checkinBtn').onclick = function() {
+    const today = getTodayStr();
+    if (p.history.some(h => h.date===today && h.done)) { showToast('今日已打卡！','info'); return; }
+    if (!p.tasks.every(t => t.done)) { showToast('请先完成所有康复任务','error'); return; }
+    p.history.push({date:today, done:true});
+    p.tasks.forEach(t => t.done = false);
+    saveDB();
+    renderTasks(); renderCalendar(); calcStreak();
+    showToast(' 打卡成功！今日康复训练已完成。','success');
+};
+renderTasks();
+
+// ── Center stats ──────────────────────────────────────────
+function renderCenterStats() {
+    const doneTotal = p.history.filter(h=>h.done).length;
+    const today = getTodayStr();
+    const todayDone = p.history.some(h=>h.date===today&&h.done);
+    const html = `
+        <div class="cstat"><div class="cicon">${todayDone?'':''}</div><div class="cnum" style="font-size:16px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div>
+        <div class="cstat"><div class="cicon"></div><div class="cnum">${p.tasks.length}</div><div class="clbl">今日任务项</div></div>
+        <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
+    document.getElementById('centerStats').innerHTML = html;
+}
+renderCenterStats();
+
+// ── 跨标签页同步：医生发布任务后患者端自动刷新 ──────────────
+window.addEventListener('storage', function(e) {
+    if (e.key === DB_KEY) {
+        const freshDB = loadDB();
+        const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
+        if (freshPatient) {
+            p.tasks = freshPatient.tasks;
+            p.records = freshPatient.records;
+            p.history = freshPatient.history;
+            renderTasks();
+            renderCenterStats();
+            renderCalendar();
+            calcStreak();
+            showToast(' 收到新的康复任务，请查看！', 'success');
+        }
+    }
+});
+
+// ── Overview view ─────────────────────────────────────────
+function renderOverview() {
+    const doneTotal = p.history.filter(h=>h.done).length;
+    const today = getTodayStr();
+    const todayDone = p.history.some(h=>h.date===today&&h.done);
+    document.getElementById('overviewStats').innerHTML = `
+        <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div>
+        <div class="cstat"><div class="cicon"></div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div>
+        <div class="cstat"><div class="cicon"></div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div>`;
+    const recentEl = document.getElementById('recentRecords');
+    const recs = (p.records||[]).slice(0,6);
+    if (!recs.length) { recentEl.innerHTML='<div class="task-empty" style="padding:20px;">暂无执行记录</div>'; return; }
+    recentEl.innerHTML = recs.map(r =>
+        `<div class="record-mini-row">
+            <span class="rtime">${r.time}</span>
+            <span class="rname">${r.action}</span>
+            <span class="badge ${getStatusClass(r.status)}">${r.status}</span>
+            <span class="rpitch">${r.pitch}°</span>
+        </div>`).join('');
+}
+
+// ── Records view ──────────────────────────────────────────
+function renderFullRecords() {
+    const tbody = document.getElementById('fullRecordBody');
+    if (!p.records||!p.records.length) {
+        tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:28px 0;">暂无动作记录</td></tr>'; return;
+    }
+    tbody.innerHTML = p.records.map(r =>
+        `<tr><td>${r.time}</td><td>${r.action}</td><td>${r.pitch}°</td><td>${r.abnormal}</td>
+         <td><span class="badge ${getStatusClass(r.status)}">${r.status}</span></td></tr>`
+    ).join('');
+}
+
+// ── 实时监测（MQTT硬件连接）────────────────────────────────
+let mqttCurrentMode = 'squat';
+const mqttModeNames = {squat:"靠墙静蹲", stance:"单脚支撑", sideleg:"侧抬腿训练", legraise:"直腿抬高"};
+let mqttPitchHistory = [], mqttRollHistory = [], mqttTimeLabels = [], mqttChart = null;
+let mqttTimerInterval = null, mqttCorrectStartTime = null, mqttLastFeedback = '';
+
+function mqttSpeak(text) {
+    if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-CN'; u.rate = 1.1; u.pitch = 1.0;
+        speechSynthesis.cancel(); speechSynthesis.speak(u);
+    }
+}
+
+function mqttUpdateTimer(isCorrect) {
+    const timerEl = document.getElementById('mqttTimer');
+    if (isCorrect) {
+        if (!mqttCorrectStartTime) {
+            mqttCorrectStartTime = Date.now();
+            if (mqttTimerInterval) clearInterval(mqttTimerInterval);
+            mqttTimerInterval = setInterval(() => {
+                const elapsed = ((Date.now() - mqttCorrectStartTime) / 1000).toFixed(1);
+                timerEl.textContent = elapsed + 's';
+            }, 100);
+        }
+    } else {
+        if (mqttTimerInterval) { clearInterval(mqttTimerInterval); mqttTimerInterval = null; }
+        mqttCorrectStartTime = null;
+        timerEl.textContent = '00.0s';
+    }
+}
+
+// Mode switching
+document.querySelectorAll('.mqtt-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.mqtt-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mqttCurrentMode = btn.dataset.mode;
+        mqttCorrectStartTime = null;
+        if (mqttTimerInterval) clearInterval(mqttTimerInterval);
+        document.getElementById('mqttTimer').textContent = '00.0s';
+        mqttSpeak('切换至 ' + mqttModeNames[mqttCurrentMode] + ' 模式，请保持标准姿态。');
+        document.getElementById('mqttStatusCard').style.backgroundColor = '#94a3b8';
+        document.getElementById('mqttAdvice').textContent = '已切换至' + mqttModeNames[mqttCurrentMode] + '模式，等待硬件数据...';
+    });
+});
+
+// MQTT 连接
+const mqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+const mqttTopic = 'iot/rehab/renyun/data';
+const mqttClient = mqtt.connect(mqttBrokerUrl);
+
+mqttClient.on('connect', () => {
+    mqttClient.subscribe(mqttTopic);
+    document.getElementById('mqttConnStatus').textContent = '已连入网络通道 (实时)';
+    document.getElementById('mqttDot').classList.add('connected');
+    document.getElementById('mqttAdvice').textContent = '网络通道就绪，请摆正起始姿态开始训练。';
+});
+
+mqttClient.on('error', () => {
+    document.getElementById('mqttConnStatus').textContent = '连接失败，请检查网络';
+    document.getElementById('mqttDot').classList.remove('connected');
+});
+
+mqttClient.on('message', (_, message) => {
+    try {
+        const data = JSON.parse(message.toString());
+        const pitch = parseFloat(data.pitch || data.thigh_pitch || 0);
+        const roll = parseFloat(data.roll || data.thigh_roll || 0);
+        const ked = parseFloat(data.ked || 0);
+
+        document.getElementById('mqttValPitch').textContent = pitch.toFixed(1) + '°';
+        document.getElementById('mqttValRoll').textContent = roll.toFixed(1) + '°';
+        document.getElementById('mqttValKed').textContent = ked.toFixed(1) + '°';
+
+        const cardEl = document.getElementById('mqttStatusCard');
+        const adviceEl = document.getElementById('mqttAdvice');
+        const timerEl = document.getElementById('mqttTimer');
+        let feedback = '数据正常传输', isCorrect = false, uiState = 'neutral';
+        const absPitch = Math.abs(pitch), absRoll = Math.abs(roll);
+
+        if (mqttCurrentMode === 'squat') { // 1. 靠墙静蹲
+            if (absPitch >= 30 && absPitch <= 65) { feedback='静蹲姿态优秀，请保持均匀呼吸'; isCorrect=true; uiState='standard'; }
+            else if (absPitch > 65 && absPitch <= 80) { feedback='下蹲角度偏深，若膝盖疼痛请稍稍起身'; isCorrect=true; uiState='adjust'; }
+            else if (absPitch > 80) { feedback='危险！蹲姿过深易致韧带受损，请立即起身'; isCorrect=false; uiState='danger'; }
+            else { feedback='请背靠墙壁，下蹲至合理角度'; isCorrect=false; }
+        } else if (mqttCurrentMode === 'legraise') { // 2. 直腿抬高 (已根据真实数据修正)
+            // 真实情况：平躺 Pitch 高（~70°+），抬腿后 Pitch 降低
+            if (absPitch >= 45 && absPitch <= 65) { feedback='直抬腿动作标准，保持股四头肌紧绷'; isCorrect=true; uiState='standard'; }
+            else if (absPitch < 45) { feedback='抬腿高度过高，易引发腰部代偿，请稍放低'; isCorrect=false; uiState='danger'; }
+            else if (absPitch > 70) { feedback='请绷紧大腿，平稳抬高至合适高度'; isCorrect=false; uiState='neutral'; }
+            else { feedback='继续调整抬腿高度'; isCorrect=false; uiState='adjust'; }
+        } else if (mqttCurrentMode === 'stance') { // 3. 单脚支撑 (已根据真实数据修正)
+            // 真实情况：正常站立时 Roll 本身很大（约 -90°），主要看 Pitch 是否稳定
+            if (absPitch <= 6) { feedback='核心控制极佳，本体感觉平衡优秀'; isCorrect=true; uiState='standard'; }
+            else if (absPitch <= 12) { feedback='重心轻微摇晃，请微收腹部核心'; isCorrect=true; uiState='adjust'; }
+            else { feedback='重心失控！请手扶椅背保护，安全第一'; isCorrect=false; uiState='danger'; }
+        } else if (mqttCurrentMode === 'sideleg') { // 4. 侧抬腿训练
+            if (absRoll >= 23 && absRoll <= 45) {
+                if (absPitch <= 12) { feedback='外展角度合格，臀中肌持续发力'; isCorrect=true; uiState='standard'; }
+                else { feedback='身体前后倾斜！请保持躯干侧卧成一直线'; isCorrect=false; uiState='adjust'; }
+            } else if (absRoll > 45) { feedback='侧抬过高，请收低角度，防止腰椎借力'; isCorrect=false; uiState='danger'; }
+            else { feedback='伸直膝关节，平稳向外侧方抬起大腿'; isCorrect=false; uiState='neutral'; }
+        }
+
+        adviceEl.textContent = feedback;
+        if (uiState === 'standard') { cardEl.style.backgroundColor='var(--accent-green)'; cardEl.style.color='white'; timerEl.style.color='white'; }
+        else if (uiState === 'adjust') { cardEl.style.backgroundColor='var(--accent-yellow)'; cardEl.style.color='#2c3e50'; timerEl.style.color='#1a365d'; }
+        else if (uiState === 'danger') { cardEl.style.backgroundColor='var(--accent-red)'; cardEl.style.color='white'; timerEl.style.color='white'; }
+        else { cardEl.style.backgroundColor='#94a3b8'; cardEl.style.color='#1a365d'; timerEl.style.color='#1a365d'; }
+
+        if (feedback !== mqttLastFeedback) { mqttSpeak(feedback); mqttLastFeedback = feedback; }
+        mqttUpdateTimer(isCorrect);
+
+        // 更新实时图表
+        mqttPitchHistory.push(pitch);
+        mqttRollHistory.push(roll);
+        mqttTimeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
+        if (mqttPitchHistory.length > 80) { mqttPitchHistory.shift(); mqttRollHistory.shift(); mqttTimeLabels.shift(); }
+        if (mqttChart) mqttChart.update();
+
+    } catch(e) { console.error('MQTT数据解析错误:', e); }
+});
+
+// 初始化实时图表
+function initMqttChart() {
+    const ctx = document.getElementById('mqttPatientChart').getContext('2d');
+    mqttChart = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: mqttTimeLabels,
+            datasets:[
+                { label:'Pitch (俯仰角)', data: mqttPitchHistory, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.07)', borderWidth:2.5, pointRadius:0, fill:true, tension:0.35 },
+                { label:'Roll (横滚角)', data: mqttRollHistory, borderColor:'#ff8800', backgroundColor:'rgba(255,136,0,0.05)', borderWidth:2, pointRadius:0, fill:false, tension:0.35 }
+            ]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+                legend:{labels:{color:'#475569',font:{size:12,weight:'500'},boxWidth:12,padding:10}},
+                tooltip:{backgroundColor:'#0a2540',cornerRadius:10,padding:10}
+            },
+            scales:{
+                x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#94a3b8',font:{size:10}},
+                   title:{display:true,text:'时间',color:'#94a3b8',font:{size:10}}},
+                y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{color:'#94a3b8',font:{size:10}},
+                   title:{display:true,text:'角度 (°)',color:'#94a3b8',font:{size:10}},min:-90,max:90}
+            },
+            interaction:{intersect:false,mode:'index'}
+        }
+    });
+}
+initMqttChart();
+
+// ── AI 康复报告（流式输出加速）─────────────────────────────────
+async function generatePatientReport() {
+    const modal = document.getElementById('aiModal');
+    const body = document.getElementById('aiModalBody');
+    const chartArea = document.getElementById('reportChartArea');
+    const progress = document.getElementById('aiProgress');
+
+    modal.classList.add('open');
+    body.textContent = '正在连接AI服务...';
+    chartArea.style.display = 'none';
+    progress.style.display = 'block';
+    progress.innerHTML = '<div class="bar"></div>';
+
+    const streakDays = parseInt(document.getElementById('streakNum').textContent) || 0;
+    const totalCheckins = p.history.filter(h => h.done).length;
+
+    const recordSummary = (p.records || []).slice(0, 5).map(r =>
+        `${r.action}${r.pitch}°${r.status}`
+    ).join('；') || '暂无';
+
+    const taskSummary = (p.tasks || []).map(t =>
+        `${t.name}×${t.count}`
+    ).join('；') || '暂无';
+
+    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
+        const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.5,
+                max_tokens: 300,
+                stream: true
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!resp.ok) {
+            const errorText = await resp.text().catch(() => '');
+            throw new Error(`请求失败 (${resp.status})`);
+        }
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('text/event-stream') || contentType.includes('text/plain')) {
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            body.textContent = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6).trim();
+                        if (data === '[DONE]') continue;
+                        try {
+                            const json = JSON.parse(data);
+                            const delta = json.choices?.[0]?.delta?.content || '';
+                            fullText += delta;
+                            body.textContent = fullText;
+                        } catch(e) {}
+                    }
+                }
+            }
+            if (!fullText) body.textContent = '未能获取到报告内容。';
+        } else {
+            const data = await resp.json();
+            const reportContent = data.choices?.[0]?.message?.content || '未能获取到报告内容。';
+            body.textContent = reportContent;
+        }
+
+        if (document.getElementById('aiModal').classList.contains('open')) {
+            progress.style.display = 'none';
+            renderReportCharts();
+            chartArea.style.display = 'block';
+        }
+
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            body.textContent = '请求超时，请稍后重试。';
+        } else {
+            body.textContent = `报告生成失败：${err.message}`;
+        }
+        chartArea.style.display = 'none';
+        progress.style.display = 'none';
+    }
+}
+window.generatePatientReport = generatePatientReport;
+
+// ── 渲染报告图表 ──────────────────────────────────────────
+function renderReportCharts() {
+    if (window.reportChart1) { try { window.reportChart1.destroy(); } catch(e) {} window.reportChart1 = null; }
+    if (window.reportChart2) { try { window.reportChart2.destroy(); } catch(e) {} window.reportChart2 = null; }
+
+    // ----- 图表1：正确率趋势（柱状图）-----
+    const ctx1 = document.getElementById('reportChart1').getContext('2d');
+    const last7 = (p.records || []).slice(0, 7);
+    const labels = last7.map((_, i) => `第${i+1}次`);
+    const correctRates = last7.map(r => {
+        const pitch = parseFloat(r.pitch) || 0;
+        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
+    });
+
+    window.reportChart1 = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '正确率 %',
+                data: correctRates,
+                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb'],
+                borderRadius: 4, barPercentage: 0.4, categoryPercentage: 0.7
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 8 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+            }
+        }
+    });
+
+    // ----- 图表2：康复雷达（5个维度）-----
+    const ctx2 = document.getElementById('reportChart2').getContext('2d');
+    const totalRec = p.records.length || 1;
+    const standardRatio = Math.min(100, Math.round((p.records.filter(r => r.status === '标准').length / totalRec) * 100));
+    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
+    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
+    const strength = Math.min(100, Math.round((p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec / 40) * 100));
+    const progress = Math.min(100, Math.round((p.tasks.filter(t => t.done).length / Math.max(1, p.tasks.length)) * 100));
+
+    window.reportChart2 = new Chart(ctx2, {
+        type: 'radar',
+        data: {
+            labels: ['动作质量', '稳定性', '依从性', '力量', '任务完成'],
+            datasets: [{
+                data: [standardRatio, stability, compliance, Math.min(100, strength + 20), progress],
+                backgroundColor: 'rgba(37,99,235,0.15)',
+                borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false } },
+            scales: { r: { min: 0, max: 100, ticks: { font: { size: 7 }, stepSize: 25 }, pointLabels: { font: { size: 8 } }, grid: { color: 'rgba(0,0,0,0.06)' } } }
+        }
+    });
+}
+window.renderReportCharts = renderReportCharts;
+
+function closeReportModal() {
+    document.getElementById('aiModal').classList.remove('open');
+    document.getElementById('aiProgress').style.display = 'none';
+    const charts = ['reportChart1', 'reportChart2'];
+    charts.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const parent = canvas.parentNode;
+            if (parent) {
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = id;
+                parent.replaceChild(newCanvas, canvas);
+            }
+        }
+    });
+    window.reportChart1 = null;
+    window.reportChart2 = null;
+}
+window.closeReportModal = closeReportModal;
+</script>
+<script src="js/chat.js"></script>
+<script>
+initChat('patient');
+</script>
+</body>
+</html>

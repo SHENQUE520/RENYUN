@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护 · 医生工作台</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.0.0/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.doctor-body{
+    flex:1;display:grid;grid-template-columns:260px 1fr;
+    gap:22px;padding:22px 30px 28px;overflow:hidden;min-height:0;
+}
+/* Left patient list */
+.plist-card{padding:20px 0 16px 18px;display:flex;flex-direction:column;overflow:hidden;}
+.plist-card .card-title{padding-right:18px;margin-bottom:12px;}
+.plist-scroll{overflow-y:auto;padding-right:14px;flex:1;}
+.pitem{
+    padding:11px 14px;border-radius:12px;cursor:pointer;transition:0.18s;
+    margin-bottom:3px;display:flex;align-items:center;justify-content:space-between;
+    border:1.5px solid transparent;
+}
+.pitem:hover{background:#f1f5f9;}
+.pitem.active{background:#dbeafe;border-color:#2563eb;}
+.pitem .pname{font-weight:500;font-size:14px;color:#0a2540;}
+.pitem .pmeta{font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px;}
+/* Right detail */
+.detail-panel{display:flex;flex-direction:column;overflow:auto;min-height:0;}
+.detail-panel .dpanel-inner{
+    background:#fff;border-radius:20px;border:1px solid #e9f0fa;
+    box-shadow:0 4px 16px rgba(0,0,0,0.03);padding:24px 26px 22px;
+    display:flex;flex-direction:column;flex:1;overflow:auto;min-height:0;
+}
+.detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-shrink:0;}
+.detail-head .dname{font-size:19px;font-weight:600;color:#0a2540;}
+.detail-head .dname small{font-size:13px;font-weight:400;color:#64748b;margin-left:8px;}
+.doctor-chart-wrap{height:110px;margin:4px 0 16px;flex-shrink:0;}
+.record-section{font-weight:600;font-size:14px;color:#0a2540;margin-bottom:9px;flex-shrink:0;}
+.record-wrap{flex:1;overflow:auto;min-height:200px;border-radius:12px;border:1px solid #eef2f6;margin-bottom:16px;}
+.assign-bar{
+    flex-shrink:0;background:#f8fbff;border-radius:14px;padding:16px 18px;
+    border:1px solid #e9f0fa;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.assign-bar .alabel{font-weight:500;font-size:14px;color:#0a2540;white-space:nowrap;}
+.assign-bar select,.assign-bar input[type=number]{
+    padding:8px 12px;border-radius:9px;border:1.5px solid #e2e8f0;
+    font-size:14px;background:#fff;outline:none;transition:0.2s;font-family:inherit;
+}
+.assign-bar select:focus,.assign-bar input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+.assign-bar .task-btn-link{
+    padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:9px;
+    font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;white-space:nowrap;
+    text-decoration:none;display:inline-flex;align-items:center;gap:5px;
+}
+.assign-bar .task-btn-link:hover{background:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,0.28);}
+/* Calendar pill in patient list */
+.checkin-pill{
+    font-size:11px;background:#dcfce7;color:#16a34a;padding:2px 8px;
+    border-radius:20px;font-weight:500;
+}
+.checkin-pill.warn{background:#fee2e2;color:#dc2626;}
+@media(max-width:1050px){.doctor-body{grid-template-columns:1fr;}}
+@media(max-width:640px){.doctor-body{padding:14px;gap:14px;padding-bottom:70px;overflow-y:auto;}}
+
+/* ── Doctor mobile bottom nav ── */
+.doc-mobile-nav{
+    display:none;position:fixed;bottom:0;left:0;right:0;height:58px;
+    background:#fff;border-top:1px solid #e9f0fa;z-index:1100;
+    justify-content:space-around;align-items:center;
+    box-shadow:0 -2px 12px rgba(0,0,0,0.05);
+}
+@media(max-width:640px){
+    .doc-mobile-nav{display:flex;}
+    .chat-fab{display:none !important;}
+}
+.doc-mob-btn{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    background:none;border:none;color:#64748b;font-size:10px;
+    cursor:pointer;padding:6px 10px;border-radius:8px;transition:0.15s;
+}
+.doc-mob-btn .dm-icon{font-size:20px;}
+.doc-mob-btn.active{color:#2563eb;}
+.doc-mob-btn:hover{color:#2563eb;}
+
+/* AI 报告弹窗 */
+.ai-modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    align-items:center;justify-content:center;z-index:1500;padding:20px;
+}
+.ai-modal-overlay.open{display:flex;}
+.ai-modal-box{
+    background:#fff;border-radius:16px;width:100%;max-width:720px;
+    max-height:85vh;display:flex;flex-direction:column;
+    box-shadow:0 10px 40px rgba(0,0,0,0.2);
+    overflow:hidden;
+}
+.ai-modal-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;border-bottom:1px solid #edf2f7;
+    background:#fff;z-index:2;flex-shrink:0;
+}
+.ai-modal-header h3{color:#1a4b8c;font-size:17px;margin:0;}
+.ai-modal-close{background:none;border:none;font-size:22px;color:#7f8c8d;cursor:pointer;}
+.ai-modal-scroll{
+    flex:1;overflow-y:auto;min-height:0;
+}
+.ai-modal-body{
+    padding:22px 28px;white-space:pre-wrap;
+    line-height:1.4;font-size:16px;color:#1e293b;
+}
+.report-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.report-chart-card{background:#f8fbff;border-radius:8px;padding:10px 12px;border:1px solid #eef2f6;}
+.report-chart-title{font-size:11px;color:#94a3b8;margin-bottom:4px;}
+.report-chart-canvas-wrap{height:170px;position:relative;}
+@media(max-width:600px){
+    .report-chart-grid{grid-template-columns:1fr;}
+}
+@keyframes progressAnim{0%{width:0%}100%{width:95%}}
+.ai-report-btn{
+    padding:8px 18px;background:linear-gradient(135deg,#1a4b8c,#2563eb);
+    color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;
+    cursor:pointer;transition:0.2s;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:5px;
+}
+.ai-report-btn:hover{background:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,0.28);}
+
+/* ══ MQTT 实时监测（医生端简化版）══ */
+.doc-mqtt-bar{
+    display:flex;align-items:center;gap:8px;padding:8px 14px;
+    background:#f8fbff;border-radius:10px;border:1px solid #e9f0fa;margin-bottom:10px;
+}
+.doc-mqtt-bar .dot{width:9px;height:9px;border-radius:50%;background:#bdc3c7;flex-shrink:0;}
+.doc-mqtt-bar .dot.connected{background:#2ecc71;}
+#docMqttStatus{font-size:12px;color:#64748b;font-weight:500;}
+.doc-mqtt-status-pill{
+    margin-left:auto;font-size:11px;padding:3px 10px;border-radius:20px;
+    background:#f1f5f9;color:#64748b;font-weight:500;
+}
+.doc-mqtt-metrics{
+    display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;
+}
+.doc-mqtt-metric{
+    flex:1;min-width:80px;background:#f8fbff;border-radius:10px;border:1px solid #e9f0fa;
+    padding:10px 12px;text-align:center;
+}
+.doc-mqtt-metric .dlabel{font-size:11px;color:#7f8c8d;display:block;margin-bottom:4px;}
+.doc-mqtt-metric .dvalue{font-size:18px;font-weight:700;color:#1a365d;}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<header class="app-header">
+    <div class="left">
+        <a class="brand" href="doctor.html"> <span class="brand-text"><span>韧云</span><span>智护</span></span><small>· 医生工作台</small></a>
+    </div>
+    <div class="right">
+        <a class="user-info" href="profile.html">
+            <div class="avatar" id="headerAvatar">李</div>
+            <div class="detail">
+                <div class="name" id="headerName">李医生</div>
+                <div class="role-tag"> 主治医师</div>
+            </div>
+        </a>
+        <span class="doctor-ref" id="headerRef"></span>
+        <a class="nav-btn primary" href="doctor-task.html" id="assignTaskBtn"> 发布任务</a>
+        <button class="nav-btn" onclick="logout()">退出</button>
+    </div>
+</header>
+
+<div class="doctor-body">
+    <!-- Patient list -->
+    <div class="card plist-card">
+        <div class="card-title">
+            <span> 患者列表</span>
+            <span class="sub" id="pTotal">5 位</span>
+        </div>
+        <div class="plist-scroll" id="plistWrap"></div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel">
+        <div class="dpanel-inner">
+            <div class="detail-head">
+                <div class="dname" id="dPatientName">张明 <small>康复中</small></div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="ai-report-btn" onclick="generateDoctorReport()"> AI报告</button>
+                    <span class="badge badge-green" id="dStatusTag">标准</span>
+                </div>
+            </div>
+
+            <div class="stats-row" id="statsRow">
+                <div class="stat-item">
+                    <div class="icon-bg"></div>
+                    <div><div class="num" id="statTotal">5</div><div class="lbl">管理患者</div></div>
+                </div>
+                <div class="stat-item">
+                    <div class="icon-bg"></div>
+                    <div><div class="num" id="statActive">0</div><div class="lbl">今日活跃</div></div>
+                </div>
+                <div class="stat-item">
+                    <div class="icon-bg"></div>
+                    <div><div class="num" id="statWarn">0</div><div class="lbl">预警提醒</div></div>
+                </div>
+            </div>
+
+            <!-- MQTT 实时监测 -->
+            <div class="doc-mqtt-bar">
+                <span class="dot" id="docMqttDot"></span>
+                <span id="docMqttStatus">连接中...</span>
+                <span class="doc-mqtt-status-pill" id="docMqttPill">等待数据</span>
+            </div>
+            <div class="doc-mqtt-metrics">
+                <div class="doc-mqtt-metric">
+                    <span class="dlabel">Pitch (倾角)</span>
+                    <span class="dvalue" id="docValPitch">0.0°</span>
+                </div>
+                <div class="doc-mqtt-metric">
+                    <span class="dlabel">KED (膝角)</span>
+                    <span class="dvalue" id="docValKed">0.0°</span>
+                </div>
+                <div class="doc-mqtt-metric">
+                    <span class="dlabel">Roll (外展)</span>
+                    <span class="dvalue" id="docValRoll">0.0°</span>
+                </div>
+            </div>
+
+            <div class="doctor-chart-wrap" style="height:160px;">
+                <canvas id="doctorChart"></canvas>
+            </div>
+
+            <div class="record-section"> 动作执行记录</div>
+            <div class="record-wrap">
+                <table class="record-table" id="recordTable">
+                    <thead><tr>
+                        <th>时间</th><th>动作类型</th><th>最大Pitch角</th><th>异常次数</th><th>状态</th>
+                    </tr></thead>
+                    <tbody id="recordBody"></tbody>
+                </table>
+            </div>
+
+            <div class="assign-bar">
+                <span class="alabel"> 快速发放任务</span>
+                <select id="quickPatient"></select>
+                <select id="quickTask">
+                    <option>直腿抬高</option><option>靠墙静蹲</option>
+                    <option>单腿支撑</option><option>蚌式开合</option>
+                </select>
+                <input type="number" id="quickCount" value="15" min="1" max="200" style="width:68px;"/>
+                <span style="font-size:13px;color:#64748b;">次</span>
+                <button class="task-btn-link" id="quickAssignBtn">发放</button>
+                <a class="task-btn-link" href="doctor-task.html">自定义任务 →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ DOCTOR MOBILE BOTTOM NAV ══ -->
+<nav class="doc-mobile-nav" id="docMobileNav">
+    <button class="doc-mob-btn active" onclick="docMobNav('plist',this)">
+        <span class="dm-icon"></span>患者
+    </button>
+    <button class="doc-mob-btn" onclick="window._openChat&&window._openChat()">
+        <span class="dm-icon"></span>沟通
+    </button>
+    <button class="doc-mob-btn" onclick="generateDoctorReport()">
+        <span class="dm-icon"></span>报告
+    </button>
+    <button class="doc-mob-btn" onclick="location.href='doctor-task.html'">
+        <span class="dm-icon"></span>任务
+    </button>
+</nav>
+
+<!-- AI 报告弹窗 -->
+<div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
+    <div class="ai-modal-box" onclick="event.stopPropagation()">
+        <div class="ai-modal-header">
+            <h3> AI 康复评估报告</h3>
+            <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
+        </div>
+        <div class="ai-modal-progress" id="aiProgress" style="display:none;height:3px;background:#e9f0fa;overflow:hidden;flex-shrink:0;"><div class="bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);animation:progressAnim 8s ease-out forwards;"></div></div>
+        <div class="ai-modal-scroll">
+            <div class="ai-modal-body" id="aiModalBody">
+                正在生成报告...
+            </div>
+            <!--  图表区域 -->
+            <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
+                <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
+                </div>
+                <div class="report-chart-grid">
+                    <div class="report-chart-card">
+                        <div class="report-chart-title">正确率趋势</div>
+                        <div class="report-chart-canvas-wrap"><canvas id="reportChart1"></canvas></div>
+                    </div>
+                    <div class="report-chart-card">
+                        <div class="report-chart-title">康复雷达</div>
+                        <div class="report-chart-canvas-wrap"><canvas id="reportChart2"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+if (!requireAuth('doctor')) throw new Error('unauth');
+initHeader('doctor');
+
+function docMobNav(target, btn) {
+    document.querySelectorAll('.doc-mob-btn').forEach(el => el.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const container = document.querySelector('.doctor-body');
+    const targetEl = target === 'plist' ? document.querySelector('.plist-card') : document.querySelector('.detail-panel');
+    if (container && targetEl) {
+        container.scrollTo({ top: targetEl.offsetTop - container.offsetTop, behavior: 'smooth' });
+    }
+}
+window.docMobNav = docMobNav;
+
+let docChart = null;
+let docPitchHistory = [], docRollHistory = [], docTimeLabels = [];
+
+function renderPatientList() {
+    const wrap = document.getElementById('plistWrap');
+    const today = getTodayStr();
+    wrap.innerHTML = DB.patients.map(p => {
+        const active = p.id === DB.currentPatientId ? 'active' : '';
+        const checkedToday = p.history.some(h => h.date === today && h.done);
+        const warnCount = p.records.filter(r => r.abnormal > 0).length;
+        const pill = warnCount > 0
+            ? `<span class="checkin-pill warn"> ${warnCount}</span>`
+            : checkedToday
+                ? `<span class="checkin-pill"> 已打卡</span>`
+                : `<span class="checkin-pill warn">未打卡</span>`;
+        return `<div class="pitem ${active}" onclick="selectPatient('${p.id}')">
+            <div>
+                <div class="pname">${p.name}</div>
+                <div class="pmeta">${p.gender} · ${p.age}岁</div>
+            </div>
+            ${pill}
+        </div>`;
+    }).join('');
+    document.getElementById('pTotal').textContent = DB.patients.length + ' 位';
+}
+
+function selectPatient(id) {
+    DB.currentPatientId = id;
+    saveDB();
+    renderPatientList();
+    renderDetail(id);
+}
+window.selectPatient = selectPatient;
+
+function renderDetail(id) {
+    const p = DB.patients.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('dPatientName').innerHTML = p.name + ' <small>' + p.status + '</small>';
+    document.getElementById('dStatusTag').textContent = p.status;
+
+    // Chart - 实时MQTT数据，初始为空
+    const ctx = document.getElementById('doctorChart').getContext('2d');
+    if (docChart) docChart.destroy();
+    docPitchHistory = [];
+    docRollHistory = [];
+    docTimeLabels = [];
+    docChart = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: docTimeLabels,
+            datasets:[
+                { label:'Pitch (俯仰角)', data: docPitchHistory, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.06)', borderWidth:2, pointRadius:0, fill:true, tension:0.35 },
+                { label:'Roll (横滚角)', data: docRollHistory, borderColor:'#ff8800', backgroundColor:'rgba(255,136,0,0.05)', borderWidth:2, pointRadius:0, fill:false, tension:0.35 }
+            ]
+        },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{legend:{labels:{color:'#475569',font:{size:11},boxWidth:10,padding:8}},
+                tooltip:{backgroundColor:'#0a2540',cornerRadius:8,padding:8}},
+            scales:{
+                x:{grid:{color:'rgba(0,0,0,0.03)'},ticks:{color:'#94a3b8',font:{size:9}},
+                   title:{display:true,text:'时间',color:'#94a3b8',font:{size:9}}},
+                y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#94a3b8',font:{size:9}},
+                   title:{display:true,text:'角度 (°)',color:'#94a3b8',font:{size:9}},min:-90,max:90}
+            },
+            interaction:{intersect:false,mode:'index'}
+        }
+    });
+
+    // 初始指标显示
+    document.getElementById('docValPitch').textContent = '0.0°';
+    document.getElementById('docValRoll').textContent = '0.0°';
+    document.getElementById('docValKed').textContent = '0.0°';
+    const pill = document.getElementById('docMqttPill');
+    pill.textContent = '等待数据'; pill.style.background = '#f1f5f9'; pill.style.color = '#64748b';
+
+    // Records
+    const tbody = document.getElementById('recordBody');
+    if (!p.records.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px 0;">暂无动作记录</td></tr>';
+    } else {
+        tbody.innerHTML = p.records.map(r =>
+            `<tr><td>${r.time}</td><td>${r.action}</td><td>${r.pitch}°</td>
+             <td>${r.abnormal}</td>
+             <td><span class="badge ${getStatusClass(r.status)}">${r.status}</span></td></tr>`
+        ).join('');
+    }
+    updateStats();
+    renderQuickSelect();
+}
+
+function updateStats() {
+    const today = getTodayStr();
+    document.getElementById('statTotal').textContent = DB.patients.length;
+    document.getElementById('statActive').textContent = DB.patients.filter(p=>p.history.some(h=>h.date===today&&h.done)).length;
+    document.getElementById('statWarn').textContent = DB.patients.filter(p=>p.records.some(r=>r.abnormal>0)).length;
+}
+
+function renderQuickSelect() {
+    const sel = document.getElementById('quickPatient');
+    sel.innerHTML = DB.patients.map(p =>
+        `<option value="${p.id}" ${p.id===DB.currentPatientId?'selected':''}>${p.name}</option>`
+    ).join('');
+}
+
+document.getElementById('quickAssignBtn').onclick = function() {
+    const pid = document.getElementById('quickPatient').value;
+    const taskName = document.getElementById('quickTask').value;
+    const count = parseInt(document.getElementById('quickCount').value) || 15;
+    const p = DB.patients.find(x => x.id === pid);
+    if (!p) return;
+    const existing = p.tasks.find(t => t.name === taskName);
+    if (existing) { existing.count = count; existing.done = false; }
+    else p.tasks.push({name:taskName, count, unit:'次', keyPoints:'', details:'', done:false});
+    const now = new Date();
+    const ts = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
+    p.records.unshift({time:ts,action:taskName,pitch:Math.round(30+Math.random()*25),abnormal:0,status:'标准'});
+    if (p.records.length > 20) p.records.pop();
+    saveDB();
+    renderDetail(DB.currentPatientId);
+    renderPatientList();
+    showToast(`已向 ${p.name} 发放：${taskName} × ${count}`, 'success');
+};
+
+renderPatientList();
+renderDetail(DB.currentPatientId);
+
+// ── 实时监测（MQTT硬件连接）──────────────────────────
+try {
+const docMqttBrokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+const docMqttTopic = 'iot/rehab/renyun/data';
+const docMqttClient = mqtt.connect(docMqttBrokerUrl);
+
+docMqttClient.on('connect', () => {
+    docMqttClient.subscribe(docMqttTopic);
+    document.getElementById('docMqttStatus').textContent = '已连入网络通道 (实时)';
+    document.getElementById('docMqttDot').classList.add('connected');
+});
+
+docMqttClient.on('error', () => {
+    document.getElementById('docMqttStatus').textContent = '连接失败';
+    document.getElementById('docMqttDot').classList.remove('connected');
+});
+
+docMqttClient.on('message', (_, message) => {
+    try {
+        const data = JSON.parse(message.toString());
+        const pitch = parseFloat(data.pitch || data.thigh_pitch || 0);
+        const roll = parseFloat(data.roll || data.thigh_roll || 0);
+        const ked = parseFloat(data.ked || 0);
+
+        document.getElementById('docValPitch').textContent = pitch.toFixed(1) + '°';
+        document.getElementById('docValRoll').textContent = roll.toFixed(1) + '°';
+        document.getElementById('docValKed').textContent = ked.toFixed(1) + '°';
+
+        const pill = document.getElementById('docMqttPill');
+        const absPitch = Math.abs(pitch);
+        if (absPitch > 65) { pill.textContent='角度偏大'; pill.style.background='#fee2e2'; pill.style.color='#dc2626'; }
+        else if (absPitch >= 25) { pill.textContent='动作正常'; pill.style.background='#dcfce7'; pill.style.color='#16a34a'; }
+        else { pill.textContent='等待动作'; pill.style.background='#f1f5f9'; pill.style.color='#64748b'; }
+
+        // 更新图表
+        docPitchHistory.push(pitch);
+        docRollHistory.push(roll);
+        docTimeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
+        if (docPitchHistory.length > 80) { docPitchHistory.shift(); docRollHistory.shift(); docTimeLabels.shift(); }
+        if (docChart) docChart.update();
+    } catch(e) {}
+});
+} catch(mqttErr) { console.warn('MQTT连接失败:', mqttErr); }
+
+// ── AI 康复报告（医生端 - 流式加速）──────────────────────────
+async function generateDoctorReport() {
+    const modal = document.getElementById('aiModal');
+    const body = document.getElementById('aiModalBody');
+    const chartArea = document.getElementById('reportChartArea');
+    const progress = document.getElementById('aiProgress');
+
+    modal.classList.add('open');
+    body.textContent = '正在连接AI服务...';
+    chartArea.style.display = 'none';
+    progress.style.display = 'block';
+    progress.innerHTML = '<div class="bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);animation:progressAnim 8s ease-out forwards;"></div>';
+
+    const p = DB.patients.find(x => x.id === DB.currentPatientId);
+    if (!p) { body.textContent = '未选择患者'; return; }
+
+    const totalCheckins = p.history.filter(h => h.done).length;
+    let streakDays = 0;
+    const today = getTodayStr();
+    const sorted = p.history.filter(h=>h.done).map(h=>h.date).sort().reverse();
+    let cursor = today;
+    for (const d of sorted) {
+        if (d === cursor) { streakDays++; const dt = new Date(cursor); dt.setDate(dt.getDate()-1); cursor = dt.toISOString().slice(0,10); }
+        else if (d < cursor) break;
+    }
+
+    const recordSummary = (p.records || []).slice(0, 5).map(r =>
+        `${r.action}${r.pitch}°${r.status}`
+    ).join('；') || '暂无';
+
+    const taskSummary = (p.tasks || []).map(t =>
+        `${t.name}×${t.count}`
+    ).join('；') || '暂无';
+
+    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
+        const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.5,
+                max_tokens: 300,
+                stream: true
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!resp.ok) {
+            const errorText = await resp.text().catch(() => '');
+            throw new Error(`请求失败 (${resp.status})`);
+        }
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('text/event-stream') || contentType.includes('text/plain')) {
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            body.textContent = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6).trim();
+                        if (data === '[DONE]') continue;
+                        try {
+                            const json = JSON.parse(data);
+                            const delta = json.choices?.[0]?.delta?.content || '';
+                            fullText += delta;
+                            body.textContent = fullText;
+                        } catch(e) {}
+                    }
+                }
+            }
+            if (!fullText) body.textContent = '未能获取到报告内容。';
+        } else {
+            const data = await resp.json();
+            const reportContent = data.choices?.[0]?.message?.content || '未能获取到报告内容。';
+            body.textContent = reportContent;
+        }
+
+        if (document.getElementById('aiModal').classList.contains('open')) {
+            progress.style.display = 'none';
+            renderDoctorReportCharts();
+            chartArea.style.display = 'block';
+        }
+
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            body.textContent = '请求超时，请稍后重试。';
+        } else {
+            body.textContent = `报告生成失败：${err.message}`;
+        }
+        chartArea.style.display = 'none';
+        progress.style.display = 'none';
+    }
+}
+window.generateDoctorReport = generateDoctorReport;
+
+// ── 渲染医生端报告图表 ────────────────────────────────────
+function renderDoctorReportCharts() {
+    const p = DB.patients.find(x => x.id === DB.currentPatientId);
+    if (!p) return;
+
+    if (window.reportChart1) { try { window.reportChart1.destroy(); } catch(e) {} window.reportChart1 = null; }
+    if (window.reportChart2) { try { window.reportChart2.destroy(); } catch(e) {} window.reportChart2 = null; }
+
+    // ----- 图表1：正确率趋势（柱状图）-----
+    const ctx1 = document.getElementById('reportChart1').getContext('2d');
+    const last7 = (p.records || []).slice(0, 7);
+    const labels = last7.map((_, i) => `第${i+1}次`);
+    const correctRates = last7.map(r => {
+        const pitch = parseFloat(r.pitch) || 0;
+        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
+    });
+
+    window.reportChart1 = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '正确率 %',
+                data: correctRates,
+                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb'],
+                borderRadius: 4, barPercentage: 0.4, categoryPercentage: 0.7
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 8 } } },
+                x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+            }
+        }
+    });
+
+    // ----- 图表2：康复雷达（4个维度）-----
+    const ctx2 = document.getElementById('reportChart2').getContext('2d');
+    const totalRec = p.records.length || 1;
+    const standardRatio = Math.min(100, Math.round((p.records.filter(r => r.status === '标准').length / totalRec) * 100));
+    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
+    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
+    const progress = Math.min(100, Math.round((p.tasks.filter(t => t.done).length / Math.max(1, p.tasks.length)) * 100));
+
+    window.reportChart2 = new Chart(ctx2, {
+        type: 'radar',
+        data: {
+            labels: ['动作质量', '稳定性', '依从性', '任务完成'],
+            datasets: [{
+                data: [standardRatio, stability, compliance, progress],
+                backgroundColor: 'rgba(37,99,235,0.15)',
+                borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false } },
+            scales: { r: { min: 0, max: 100, ticks: { font: { size: 7 }, stepSize: 25 }, pointLabels: { font: { size: 8 } }, grid: { color: 'rgba(0,0,0,0.06)' } } }
+        }
+    });
+}
+window.renderDoctorReportCharts = renderDoctorReportCharts;
+
+// ── 关闭报告弹窗 ──────────────────────────────────────────
+function closeReportModal() {
+    document.getElementById('aiModal').classList.remove('open');
+    document.getElementById('aiProgress').style.display = 'none';
+    const charts = ['reportChart1', 'reportChart2'];
+    charts.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const parent = canvas.parentNode;
+            if (parent) {
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = id;
+                parent.replaceChild(newCanvas, canvas);
+            }
+        }
+    });
+    window.reportChart1 = null;
+    window.reportChart2 = null;
+}
+window.closeReportModal = closeReportModal;
+</script>
+<script src="js/chat.js"></script>
+<script>
+initChat('doctor');
+</script>
+</body>
+</html>
