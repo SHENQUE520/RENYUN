@@ -149,7 +149,6 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 <script src="js/utils.js"></script>
 <script>
 if (!requireAuth('doctor')) throw new Error('unauth');
-initHeader('doctor');
 
 const PRESETS = [
     { name:'直腿抬高', count:10, unit:'次', keyPoints:'保持膝关节完全伸直', details:'仰卧位，下肢伸直抬高约45°，保持5秒后缓慢放下，全程不弯曲膝关节。' },
@@ -226,34 +225,30 @@ function renderPatientSelect() {
     ).join('');
 }
 
-document.getElementById('submitTasksBtn').onclick = function() {
+document.getElementById('submitTasksBtn').onclick = async function() {
     if (!draftTasks.length) { showToast('请先添加至少一个动作', 'error'); return; }
     const pid = document.getElementById('targetPatient').value;
     const p = DB.patients.find(x => x.id === pid);
     if (!p) return;
 
-    draftTasks.forEach(dt => {
-        const existing = p.tasks.find(t => t.name === dt.name);
-        if (existing) { Object.assign(existing, dt); }
-        else { p.tasks.push({ ...dt }); }
-    });
-
-    const now = new Date();
-    const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
-    draftTasks.forEach(dt => {
-        p.records.unshift({ time:ts, action:dt.name, pitch:Math.round(30+Math.random()*25), abnormal:0, status:'标准' });
-    });
-    if (p.records.length > 30) p.records.length = 30;
-
-    saveDB();
-    showToast(`已向 ${p.name} 发布 ${draftTasks.length} 项任务`, 'success');
-    draftTasks = [];
-    renderDraftList();
+    try {
+        await assignTasks(pid, draftTasks);
+        showToast(`已向 ${p.name} 发布 ${draftTasks.length} 项任务`, 'success');
+        draftTasks = [];
+        renderDraftList();
+    } catch (err) {
+        showToast(err.message || '发布任务失败', 'error');
+    }
 };
 
-renderPresets();
-renderPatientSelect();
-renderDraftList();
+async function init() {
+    initHeader('doctor');
+    await bootstrapDoctor();
+    renderPresets();
+    renderPatientSelect();
+    renderDraftList();
+}
+init();
 </script>
 </body>
 </html>

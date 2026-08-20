@@ -641,16 +641,16 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 <script>
 if (!requireAuth('patient')) throw new Error('unauth');
 
-// Always reload patient from DB to get latest tasks from doctor
-const p = getCurrentPatient();
-initHeader('patient');
+// p is populated by init() below once the patient record is fetched from the server
+let p;
 
-// Sidebar user info
-document.getElementById('sideAvatar').textContent = p.name.charAt(0);
-document.getElementById('sideUname').textContent = p.name;
-document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.age||'')+'岁';
-document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
-document.getElementById('mobileDoctorInfo').innerHTML = `<span class="doc-badge">主治医师</span><span>${p.doctor||'未分配'}</span>`;
+function renderSidebar() {
+    document.getElementById('sideAvatar').textContent = p.name.charAt(0);
+    document.getElementById('sideUname').textContent = p.name;
+    document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.age||'')+'岁';
+    document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
+    document.getElementById('mobileDoctorInfo').innerHTML = `<span class="doc-badge">主治医师</span><span>${p.doctor||'未分配'}</span>`;
+}
 
 // ── View switching ────────────────────────────────────────
 function switchView(id, btn) {
@@ -723,7 +723,6 @@ function renderCalendar() {
 }
 document.getElementById('calPrev').onclick = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
 document.getElementById('calNext').onclick = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
-renderCalendar();
 
 // ── Streak ────────────────────────────────────────────────
 function calcStreak() {
@@ -737,7 +736,6 @@ function calcStreak() {
     }
     document.getElementById('streakNum').textContent = streak;
 }
-calcStreak();
 
 // ── Tasks (from doctor) ───────────────────────────────────
 function renderTasks() {
@@ -778,17 +776,15 @@ function updateCheckinBtn() {
     btn.className = 'checkin-btn'; btn.disabled = !allDone;
 }
 
-document.getElementById('checkinBtn').onclick = function() {
-    const today = getTodayStr();
-    if (p.history.some(h => h.date===today && h.done)) { showToast('今日已打卡！','info'); return; }
-    if (!p.tasks.every(t => t.done)) { showToast('请先完成所有康复任务','error'); return; }
-    p.history.push({date:today, done:true});
-    p.tasks.forEach(t => t.done = false);
-    saveDB();
-    renderTasks(); renderCalendar(); calcStreak();
-    showToast('🎉 打卡成功！今日康复训练已完成。','success');
+document.getElementById('checkinBtn').onclick = async function() {
+    try {
+        p = await checkinPatient(p.id);
+        renderTasks(); renderCalendar(); calcStreak(); renderCenterStats();
+        showToast('🎉 打卡成功！今日康复训练已完成。','success');
+    } catch (err) {
+        showToast(err.message || '打卡失败','error');
+    }
 };
-renderTasks();
 
 // ── Center stats ──────────────────────────────────────────
 function renderCenterStats() {
@@ -801,25 +797,25 @@ function renderCenterStats() {
         <div class="cstat"><div class="cicon">📅</div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
     document.getElementById('centerStats').innerHTML = html;
 }
-renderCenterStats();
 
-// ── 跨标签页同步：医生发布任务后患者端自动刷新 ──────────────
-window.addEventListener('storage', function(e) {
-    if (e.key === DB_KEY) {
-        const freshDB = loadDB();
-        const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
-        if (freshPatient) {
-            p.tasks = freshPatient.tasks;
-            p.records = freshPatient.records;
-            p.history = freshPatient.history;
-            renderTasks();
-            renderCenterStats();
-            renderCalendar();
-            calcStreak();
+// ── 定时刷新：医生发布任务后患者端自动同步 ──────────────
+let _lastTaskCount = null;
+setInterval(async () => {
+    try {
+        const fresh = await refreshPatient(p.id);
+        p.tasks = fresh.tasks;
+        p.records = fresh.records;
+        p.history = fresh.history;
+        if (_lastTaskCount !== null && fresh.tasks.length !== _lastTaskCount) {
             showToast('📋 收到新的康复任务，请查看！', 'success');
         }
-    }
-});
+        _lastTaskCount = fresh.tasks.length;
+        renderTasks();
+        renderCenterStats();
+        renderCalendar();
+        calcStreak();
+    } catch (e) { /* silent — retried on next tick */ }
+}, 30000);
 
 // ── Overview view ─────────────────────────────────────────
 function renderOverview() {
@@ -859,6 +855,7 @@ let mqttCurrentMode = 'squat';
 const mqttModeNames = {squat:"靠墙静蹲", stance:"单脚支撑", sideleg:"侧抬腿训练", legraise:"直腿抬高"};
 let mqttPitchHistory = [], mqttRollHistory = [], mqttTimeLabels = [], mqttChart = null;
 let mqttTimerInterval = null, mqttCorrectStartTime = null, mqttLastFeedback = '';
+let mqttLastPersist = null;
 
 function mqttSpeak(text) {
     if ('speechSynthesis' in window) {
@@ -974,6 +971,13 @@ mqttClient.on('message', (_, message) => {
         mqttTimeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
         if (mqttPitchHistory.length > 80) { mqttPitchHistory.shift(); mqttRollHistory.shift(); mqttTimeLabels.shift(); }
         if (mqttChart) mqttChart.update();
+
+        // 每2秒采样落库一次，避免每条MQTT消息都打请求
+        const now = Date.now();
+        if (p && (!mqttLastPersist || now - mqttLastPersist > 2000)) {
+            mqttLastPersist = now;
+            sendTelemetry(p.id, { mode: mqttCurrentMode, pitch, roll, ked });
+        }
 
     } catch(e) { console.error('MQTT数据解析错误:', e); }
 });
@@ -1192,10 +1196,22 @@ function closeReportModal() {
     window.reportChart2 = null;
 }
 window.closeReportModal = closeReportModal;
+
+async function init() {
+    p = await bootstrapPatient();
+    initHeader('patient');
+    renderSidebar();
+    renderTasks();
+    renderCalendar();
+    calcStreak();
+    renderCenterStats();
+    _lastTaskCount = p.tasks.length;
+}
+window._initDone = init();
 </script>
 <script src="js/chat.js"></script>
 <script>
-initChat('patient');
+window._initDone.then(() => initChat('patient'));
 </script>
 </body>
 </html>

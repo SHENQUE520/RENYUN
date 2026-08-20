@@ -400,7 +400,7 @@ function initChat(role) {
     window._recallMsg = function(msgId) {
         const msg = _msgs.find(m => m.id === msgId);
         if (!msg || msg.fromRole !== role) return;
-        fetch('/api/messages/' + msgId + '/recall', { method: 'PATCH' }).catch(() => {});
+        apiFetch('/api/messages/' + msgId + '/recall', { method: 'PATCH' }).catch(() => {});
     };
 
     document.addEventListener('click', function() {
@@ -412,23 +412,28 @@ function initChat(role) {
         if (bar) bar.classList.toggle('visible');
     };
 
-    window._addReminder = function() {
+    window._addReminder = async function() {
         const t = document.getElementById('remTimeIn').value;
         const lbl = document.getElementById('remLabelIn').value.trim() || '记得完成今日康复训练';
         if (!t) { showToast('请选择提醒时间','error'); return; }
-        DB.reminders = DB.reminders || [];
-        DB.reminders.push({ id: Date.now()+'_r', patientId: _activePid, time: t, label: lbl, enabled: true });
-        saveDB();
-        _renderReminders();
-        const pname = (DB.patients.find(p=>p.id===_activePid)||{}).name||'';
-        showToast(`已为 ${pname} 设置 ${t} 提醒`, 'success');
-        document.getElementById('remLabelIn').value = '';
+        try {
+            await addReminderApi(_activePid, t, lbl);
+            await _renderReminders();
+            const pname = (DB.patients.find(p=>p.id===_activePid)||{}).name||'';
+            showToast(`已为 ${pname} 设置 ${t} 提醒`, 'success');
+            document.getElementById('remLabelIn').value = '';
+        } catch (err) {
+            showToast(err.message || '设置提醒失败', 'error');
+        }
     };
 
-    window._delReminder = function(id) {
-        DB.reminders = (DB.reminders||[]).filter(r=>r.id!==id);
-        saveDB();
-        _renderReminders();
+    window._delReminder = async function(id) {
+        try {
+            await delReminderApi(_activePid, id);
+            await _renderReminders();
+        } catch (err) {
+            showToast(err.message || '删除提醒失败', 'error');
+        }
     };
 
     // ── Internal helpers ────────────────────────────────────
@@ -449,11 +454,7 @@ function initChat(role) {
         _msgs.push(msg);
         _renderMsgs(_activePid);
         _scrollMsgs();
-        fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(msg)
-        }).catch(() => {});
+        apiFetch('/api/messages', { method: 'POST', body: JSON.stringify(msg) }).catch(() => {});
     }
 
     function _renderMsgs(pid) {
@@ -522,12 +523,17 @@ function initChat(role) {
         if (s) s.textContent = p.gender+' · '+p.age+'岁 · '+p.status;
     }
 
-    function _renderReminders() {
+    let _reminderCache = [];
+    async function _renderReminders() {
         const list = document.getElementById('remList');
-        if (!list) return;
-        const rems = (DB.reminders||[]).filter(r=>r.patientId===_activePid);
-        if (!rems.length) { list.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:4px 2px;">暂无提醒</div>'; return; }
-        list.innerHTML = rems.map(r =>
+        if (!list || !_activePid) return;
+        try {
+            _reminderCache = await fetchReminders(_activePid);
+        } catch (err) {
+            return;
+        }
+        if (!_reminderCache.length) { list.innerHTML = '<div style="font-size:11px;color:#94a3b8;padding:4px 2px;">暂无提醒</div>'; return; }
+        list.innerHTML = _reminderCache.map(r =>
             `<div class="rem-item">
                 <span class="rt">${r.time}</span>
                 <span class="rl">${_esc(r.label)}</span>
@@ -543,8 +549,7 @@ function initChat(role) {
 
     // 从服务器拉取所有消息
     function _fetchAllMsgs() {
-        fetch('/api/messages')
-            .then(r => r.json())
+        apiFetch('/api/messages')
             .then(data => {
                 if (!Array.isArray(data)) return;
                 _msgs = data;
@@ -557,9 +562,10 @@ function initChat(role) {
             .catch(() => {});
     }
 
-    // SSE 实时接收消息，断线后5秒重连
+    // SSE 实时接收消息，断线后5秒重连（EventSource 不支持自定义头，token 通过查询参数传递）
     function _connectSSE() {
-        const es = new EventSource('/api/messages/stream');
+        const auth = getAuth();
+        const es = new EventSource('/api/messages/stream?token=' + encodeURIComponent((auth && auth.token) || ''));
         es.onmessage = e => {
             try {
                 const data = JSON.parse(e.data);
@@ -586,11 +592,12 @@ function initChat(role) {
     if (role === 'patient') {
         const firedKey = 'rfired_' + getTodayStr();
         const fired = new Set(JSON.parse(localStorage.getItem(firedKey)||'[]'));
-        function _checkReminders() {
-            try { const f=JSON.parse(localStorage.getItem('rehab_db_v2')||'{}'); if(f.reminders) DB.reminders=f.reminders; } catch(_){}
+        async function _checkReminders() {
+            let rems;
+            try { rems = await fetchReminders(DB.currentPatientId); } catch (_) { return; }
             const now = new Date();
             const cur = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-            (DB.reminders||[]).filter(r=>r.enabled&&r.patientId===DB.currentPatientId&&r.time===cur&&!fired.has(r.id))
+            (rems||[]).filter(r=>r.enabled&&r.time===cur&&!fired.has(r.id))
             .forEach(r => {
                 fired.add(r.id);
                 localStorage.setItem(firedKey, JSON.stringify([...fired]));
