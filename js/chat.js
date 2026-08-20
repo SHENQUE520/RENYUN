@@ -189,11 +189,7 @@ function initChat(role) {
             <div class="chat-head-top">
                 <span class="chat-head-title" id="chatTitle">${role==='patient'?'联系医生':'患者对话'}</span>
                 <div style="display:flex;gap:6px;align-items:center;">
-<<<<<<< HEAD
                     ${role==='doctor'?'<button class="chat-close-btn" title="提醒设置" onclick="_toggleReminderBar()" style="font-size:13px;">提醒</button>':''}
-=======
-                    ${role==='doctor'?'<button class="chat-close-btn" title="提醒设置" onclick="_toggleReminderBar()" style="font-size:13px;">⏰</button>':''}
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                     <button class="chat-close-btn" onclick="_closeChat()">✕</button>
                 </div>
             </div>
@@ -203,13 +199,8 @@ function initChat(role) {
         <div class="chat-msgs" id="chatMsgs"></div>
         ${reminderBar}
         <div class="chat-toolbar" id="chatToolbar">
-<<<<<<< HEAD
             <button class="toolbar-btn" title="表情" onclick="_toggleEmoji()">表情</button>
             <button class="toolbar-btn" title="发送图片" onclick="document.getElementById('chatImgIn').click()">图片</button>
-=======
-            <button class="toolbar-btn" title="表情" onclick="_toggleEmoji()">😊</button>
-            <button class="toolbar-btn" title="发送图片" onclick="document.getElementById('chatImgIn').click()">🖼️</button>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <input type="file" id="chatImgIn" class="img-input" accept="image/*" onchange="_sendImage(this)"/>
             <span style="flex:1;"></span>
         </div>
@@ -224,11 +215,7 @@ function initChat(role) {
     fab.className = 'chat-fab';
     fab.id = 'chatFab';
     fab.title = '双击打开聊天';
-<<<<<<< HEAD
     fab.innerHTML = '消息<span class="chat-unread-dot" id="chatUnreadDot"></span>';
-=======
-    fab.innerHTML = '💬<span class="chat-unread-dot" id="chatUnreadDot"></span>';
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
 
     // Draggable FAB: single click/drag = move, double click = open
     let _fabDragging = false, _fabMoved = false, _fabStartX = 0, _fabStartY = 0, _fabOrigX = 0, _fabOrigY = 0;
@@ -474,11 +461,7 @@ function initChat(role) {
         if (!container) return;
         const msgs = _msgs.filter(m=>m.toPatientId===pid);
         if (!msgs.length) {
-<<<<<<< HEAD
             container.innerHTML = `<div class="chat-empty-state"><div class="chat-empty-icon">...</div><div>暂无消息</div></div>`;
-=======
-            container.innerHTML = `<div class="chat-empty-state"><div class="chat-empty-icon">💬</div><div>暂无消息</div></div>`;
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             return;
         }
         container.innerHTML = msgs.map(m => {
@@ -611,11 +594,7 @@ function initChat(role) {
             .forEach(r => {
                 fired.add(r.id);
                 localStorage.setItem(firedKey, JSON.stringify([...fired]));
-<<<<<<< HEAD
                 showToast('[提醒] '+r.label, 'info');
-=======
-                showToast('⏰ '+r.label, 'info');
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 // Show a longer persistent reminder banner
                 _showReminderBanner(r.label);
             });
@@ -627,11 +606,7 @@ function initChat(role) {
                 banner.id = 'remBanner';
                 banner.style.cssText='position:fixed;top:72px;right:24px;width:290px;background:#fff;border-radius:16px;border:1px solid #bfdbfe;box-shadow:0 12px 36px rgba(37,99,235,0.18);z-index:2000;padding:16px 18px;display:none;';
                 banner.innerHTML=`<button onclick="document.getElementById('remBanner').style.display='none'" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;">✕</button>
-<<<<<<< HEAD
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><span style="font-size:14px;font-weight:600;color:#0a2540;">康复提醒</span></div>
-=======
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><span style="font-size:22px;">⏰</span><span style="font-size:14px;font-weight:600;color:#0a2540;">康复提醒</span></div>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 <div id="remBannerBody" style="font-size:13px;color:#475569;line-height:1.6;"></div>`;
                 document.body.appendChild(banner);
             }

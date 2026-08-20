@@ -1,7 +1,7 @@
 /* ========== Global Reset & Base ========== */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
-    font-family:'SimSun','宋体',serif;
+    font-family:'KaiTi','楷体','STKaiti',serif;
     background:#f5f9ff;color:#1e293b;min-height:100vh;
 }
 ::-webkit-scrollbar{width:4px;height:4px;}
