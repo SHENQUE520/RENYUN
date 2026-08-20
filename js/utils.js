@@ -33,12 +33,6 @@ function initHeader(role) {
     }
 }
 
-function logout() {
-    DB.currentUser = null;
-    saveDB();
-    window.location.href = 'login.html';
-}
-
 // Expose to window for inline onclick handlers
 window.logout = logout;
 window.goTo   = goTo;

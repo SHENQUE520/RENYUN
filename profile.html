@@ -167,7 +167,8 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 <script>
 if (!requireAuth()) throw new Error('unauth');
 
-const role = DB.currentUser;
+const auth = getAuth();
+const role = auth.role;
 const backPage = role === 'patient' ? 'patient.html' : 'doctor.html';
 document.getElementById('backBtn').href = backPage;
 document.getElementById('cancelBtn').href = backPage;
@@ -209,33 +210,45 @@ function loadForm() {
     }
 }
 
-document.getElementById('saveBtn').onclick = function() {
+document.getElementById('saveBtn').onclick = async function() {
+    let fields;
     if (role === 'patient') {
-        const p = getCurrentPatient();
-        p.name = document.getElementById('fieldName').value.trim() || p.name;
-        p.gender = document.getElementById('fieldGender').value;
-        p.age = parseInt(document.getElementById('fieldAge').value) || p.age;
-        p.phone = document.getElementById('fieldPhone').value.trim();
-        p.emergencyContact = document.getElementById('fieldEmergency').value.trim();
-        p.surgeryDate = document.getElementById('fieldSurgery').value;
-        p.notes = document.getElementById('fieldNotes').value.trim();
+        fields = {
+            name: document.getElementById('fieldName').value.trim(),
+            gender: document.getElementById('fieldGender').value,
+            age: parseInt(document.getElementById('fieldAge').value) || undefined,
+            phone: document.getElementById('fieldPhone').value.trim(),
+            emergencyContact: document.getElementById('fieldEmergency').value.trim(),
+            surgeryDate: document.getElementById('fieldSurgery').value,
+            notes: document.getElementById('fieldNotes').value.trim(),
+        };
     } else {
-        const d = getCurrentDoctor();
-        d.name = document.getElementById('fieldName').value.trim() || d.name;
-        d.gender = document.getElementById('fieldGender').value;
-        d.phone = document.getElementById('fieldPhone').value.trim();
-        d.title = document.getElementById('fieldTitle').value.trim();
-        d.department = document.getElementById('fieldDept').value.trim();
-        d.hospital = document.getElementById('fieldHospital').value.trim();
-        d.speciality = document.getElementById('fieldSpec').value.trim();
-        d.bio = document.getElementById('fieldBio').value.trim();
+        fields = {
+            name: document.getElementById('fieldName').value.trim(),
+            gender: document.getElementById('fieldGender').value,
+            phone: document.getElementById('fieldPhone').value.trim(),
+            title: document.getElementById('fieldTitle').value.trim(),
+            department: document.getElementById('fieldDept').value.trim(),
+            hospital: document.getElementById('fieldHospital').value.trim(),
+            speciality: document.getElementById('fieldSpec').value.trim(),
+            bio: document.getElementById('fieldBio').value.trim(),
+        };
     }
-    saveDB();
-    loadForm();
-    showToast('个人信息已更新', 'success');
+    try {
+        await saveProfile(role, auth.id, fields);
+        loadForm();
+        showToast('个人信息已更新', 'success');
+    } catch (err) {
+        showToast(err.message || '保存失败', 'error');
+    }
 };
 
-loadForm();
+async function init() {
+    if (role === 'patient') await bootstrapPatient();
+    else await bootstrapDoctor();
+    loadForm();
+}
+init();
 </script>
 </body>
 </html>

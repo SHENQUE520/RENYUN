@@ -308,7 +308,6 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <script src="js/utils.js"></script>
 <script>
 if (!requireAuth('doctor')) throw new Error('unauth');
-initHeader('doctor');
 
 function docMobNav(target, btn) {
     document.querySelectorAll('.doc-mob-btn').forEach(el => el.classList.remove('active'));
@@ -349,7 +348,6 @@ function renderPatientList() {
 
 function selectPatient(id) {
     DB.currentPatientId = id;
-    saveDB();
     renderPatientList();
     renderDetail(id);
 }
@@ -426,27 +424,28 @@ function renderQuickSelect() {
     ).join('');
 }
 
-document.getElementById('quickAssignBtn').onclick = function() {
+document.getElementById('quickAssignBtn').onclick = async function() {
     const pid = document.getElementById('quickPatient').value;
     const taskName = document.getElementById('quickTask').value;
     const count = parseInt(document.getElementById('quickCount').value) || 15;
     const p = DB.patients.find(x => x.id === pid);
     if (!p) return;
-    const existing = p.tasks.find(t => t.name === taskName);
-    if (existing) { existing.count = count; existing.done = false; }
-    else p.tasks.push({name:taskName, count, unit:'次', keyPoints:'', details:'', done:false});
-    const now = new Date();
-    const ts = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
-    p.records.unshift({time:ts,action:taskName,pitch:Math.round(30+Math.random()*25),abnormal:0,status:'标准'});
-    if (p.records.length > 20) p.records.pop();
-    saveDB();
-    renderDetail(DB.currentPatientId);
-    renderPatientList();
-    showToast(`已向 ${p.name} 发放：${taskName} × ${count}`, 'success');
+    try {
+        await assignTasks(pid, [{ name: taskName, count, unit: '次', keyPoints: '', details: '' }]);
+        renderDetail(DB.currentPatientId);
+        renderPatientList();
+        showToast(`已向 ${p.name} 发放：${taskName} × ${count}`, 'success');
+    } catch (err) {
+        showToast(err.message || '发放任务失败', 'error');
+    }
 };
 
-renderPatientList();
-renderDetail(DB.currentPatientId);
+async function init() {
+    initHeader('doctor');
+    await bootstrapDoctor();
+    renderPatientList();
+    renderDetail(DB.currentPatientId);
+}
 
 // ── 实时监测（MQTT硬件连接）──────────────────────────
 try {
@@ -689,10 +688,11 @@ function closeReportModal() {
     window.reportChart2 = null;
 }
 window.closeReportModal = closeReportModal;
+window._initDone = init();
 </script>
 <script src="js/chat.js"></script>
 <script>
-initChat('doctor');
+window._initDone.then(() => initChat('doctor'));
 </script>
 </body>
 </html>

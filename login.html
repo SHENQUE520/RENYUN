@@ -423,33 +423,17 @@ function submitContact(e) {
 }
 window.submitContact = submitContact;
 
-function doLogin() {
+async function doLogin() {
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
     if (!user || !pass) { showToast('请输入账号和密码', 'error'); return; }
 
-    if (selectedRole === 'patient') {
-        const p = DB.patients.find(p => p.username === user || p.name === user);
-        if (p && p.password === pass) {
-            DB.currentUser = 'patient';
-            DB.currentPatientId = p.id;
-            saveDB();
-            showToast('欢迎回来，' + p.name + '！', 'success');
-            setTimeout(() => window.location.href = 'patient.html', 600);
-        } else {
-            showToast('账号或密码错误', 'error');
-        }
-    } else {
-        const d = DB.doctors.find(d => d.username === user);
-        if (d && d.password === pass) {
-            DB.currentUser = 'doctor';
-            DB.currentDoctorId = d.id;
-            saveDB();
-            showToast('欢迎，' + d.name + '！', 'success');
-            setTimeout(() => window.location.href = 'doctor.html', 600);
-        } else {
-            showToast('账号或密码错误', 'error');
-        }
+    try {
+        const data = await login(selectedRole, user, pass);
+        showToast('欢迎回来，' + data.name + '！', 'success');
+        setTimeout(() => window.location.href = selectedRole === 'patient' ? 'patient.html' : 'doctor.html', 600);
+    } catch (err) {
+        showToast(err.message || '账号或密码错误', 'error');
     }
 }
 </script>
