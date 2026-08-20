@@ -61,7 +61,11 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 <div id="toast" class="toast"></div>
 <header class="app-header">
     <div class="left">
+<<<<<<< HEAD
         <a class="brand" id="backBrand" href="#"> 韧云智护</a>
+=======
+        <a class="brand" id="backBrand" href="#">🦿 韧云智护</a>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     </div>
     <div class="right">
         <a class="back-btn" id="backBtn" href="#">← 返回</a>
@@ -75,13 +79,21 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
             <div class="profile-avatar-lg" id="heroAvatar">张</div>
             <div class="profile-hero-info">
                 <div class="pname" id="heroName">张明</div>
+<<<<<<< HEAD
                 <div class="prole" id="heroRole"> 使用者</div>
+=======
+                <div class="prole" id="heroRole">🧑 使用者</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             </div>
         </div>
 
         <!-- Basic Info -->
         <div class="section-card">
+<<<<<<< HEAD
             <div class="section-title"> 基本信息</div>
+=======
+            <div class="section-title">👤 基本信息</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="form-grid">
                 <div class="field">
                     <label>姓名</label>
@@ -111,7 +123,11 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 
         <!-- Medical Info (patient only) -->
         <div class="section-card" id="medSection">
+<<<<<<< HEAD
             <div class="section-title"> 诊疗信息</div>
+=======
+            <div class="section-title">🏥 诊疗信息</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="form-grid">
                 <div class="field">
                     <label>主治医生</label>
@@ -130,7 +146,11 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 
         <!-- Doctor extra info -->
         <div class="section-card" id="docSection" style="display:none;">
+<<<<<<< HEAD
             <div class="section-title"> 职业信息</div>
+=======
+            <div class="section-title">🩺 职业信息</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="form-grid">
                 <div class="field">
                     <label>职称</label>
@@ -178,7 +198,11 @@ function loadForm() {
         const p = getCurrentPatient();
         document.getElementById('heroAvatar').textContent = p.name.charAt(0);
         document.getElementById('heroName').textContent = p.name;
+<<<<<<< HEAD
         document.getElementById('heroRole').textContent = ' 使用者';
+=======
+        document.getElementById('heroRole').textContent = '🧑 使用者';
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         document.getElementById('fieldName').value = p.name || '';
         document.getElementById('fieldGender').value = p.gender || '男';
         document.getElementById('fieldAge').value = p.age || '';
@@ -193,7 +217,11 @@ function loadForm() {
         const d = getCurrentDoctor();
         document.getElementById('heroAvatar').textContent = d.name.charAt(0);
         document.getElementById('heroName').textContent = d.name;
+<<<<<<< HEAD
         document.getElementById('heroRole').textContent = ' 主治医师';
+=======
+        document.getElementById('heroRole').textContent = '👨‍⚕️ 主治医师';
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         document.getElementById('fieldName').value = d.name || '';
         document.getElementById('fieldGender').value = d.gender || '男';
         document.getElementById('fieldAge').value = d.age || '';

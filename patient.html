@@ -360,14 +360,22 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
 <header class="app-header">
     <div class="left">
+<<<<<<< HEAD
         <a class="brand" href="patient.html"> 韧云智护<small>· 患者端</small></a>
+=======
+        <a class="brand" href="patient.html">🦿 韧云智护<small>· 患者端</small></a>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     </div>
     <div class="right">
         <a class="user-info" href="profile.html">
             <div class="avatar" id="headerAvatar">张</div>
             <div class="detail">
                 <div class="name" id="headerName">张明</div>
+<<<<<<< HEAD
                 <div class="role-tag"> 使用者</div>
+=======
+                <div class="role-tag">🧑 使用者</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             </div>
         </a>
         <button class="nav-btn" onclick="logout()">退出</button>
@@ -387,6 +395,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     <nav class="sidebar-nav">
         <div class="nav-group-label">主要功能</div>
         <button class="nav-item active" data-view="monitor" onclick="switchView('monitor',this)">
+<<<<<<< HEAD
             <span class="nav-icon"></span>动作监测
         </button>
         <button class="nav-item" data-view="overview" onclick="switchView('overview',this)">
@@ -407,11 +416,37 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
         </button>
         <button class="nav-item" onclick="location.href='profile.html'">
             <span class="nav-icon"></span>个人信息
+=======
+            <span class="nav-icon">📈</span>动作监测
+        </button>
+        <button class="nav-item" data-view="overview" onclick="switchView('overview',this)">
+            <span class="nav-icon">🏠</span>康复概览
+        </button>
+        <button class="nav-item" onclick="generatePatientReport()">
+            <span class="nav-icon">🤖</span>生成报告
+        </button>
+        <button class="nav-item" data-view="chat" onclick="openChatFromNav()">
+            <span class="nav-icon">💬</span>与医生沟通
+        </button>
+        <button class="nav-item" data-view="demo" onclick="switchView('demo',this)">
+            <span class="nav-icon">🎬</span>动作演示
+        </button>
+        <div class="nav-group-label">管理</div>
+        <button class="nav-item" data-view="records" onclick="switchView('records',this)">
+            <span class="nav-icon">📊</span>执行记录
+        </button>
+        <button class="nav-item" onclick="location.href='profile.html'">
+            <span class="nav-icon">👤</span>个人信息
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         </button>
     </nav>
     <div class="sidebar-footer">
         <button class="nav-item" style="color:#ef4444;" onclick="logout()">
+<<<<<<< HEAD
             <span class="nav-icon"></span>退出登录
+=======
+            <span class="nav-icon">🚪</span>退出登录
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         </button>
     </div>
 </aside>
@@ -463,7 +498,11 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
             <!-- Real-time chart -->
             <div class="mqtt-chart-panel">
+<<<<<<< HEAD
                 <h3 style="font-size:14px;margin-bottom:12px;color:#0a2540;"> 实时关节姿态动态曲线</h3>
+=======
+                <h3 style="font-size:14px;margin-bottom:12px;color:#0a2540;">📊 实时关节姿态动态曲线</h3>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 <div style="height:220px;position:relative;">
                     <canvas id="mqttPatientChart"></canvas>
                 </div>
@@ -474,15 +513,25 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- View: Overview -->
         <div class="view-panel" id="view-overview">
+<<<<<<< HEAD
             <div class="section-heading"> 康复概览</div>
             <div class="center-stats" id="overviewStats"></div>
             <div class="section-heading" style="margin-top:20px;"> 近期记录</div>
+=======
+            <div class="section-heading">🏠 康复概览</div>
+            <div class="center-stats" id="overviewStats"></div>
+            <div class="section-heading" style="margin-top:20px;">🕐 近期记录</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="record-mini" id="recentRecords"></div>
         </div>
 
         <!-- View: Records -->
         <div class="view-panel" id="view-records">
+<<<<<<< HEAD
             <div class="section-heading"> 动作执行记录</div>
+=======
+            <div class="section-heading">📊 动作执行记录</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div style="background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:auto;">
                 <table class="record-table" id="fullRecordTable">
                     <thead><tr>
@@ -495,7 +544,11 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- View: Demo (动作演示) -->
         <div class="view-panel" id="view-demo">
+<<<<<<< HEAD
             <div class="section-heading"> 动作演示</div>
+=======
+            <div class="section-heading">🎬 动作演示</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <p style="font-size:13px;color:#64748b;margin-bottom:16px;">观看标准动作视频，配合训练进行正确的康复练习。</p>
             <div class="demo-grid">
                 <div class="demo-card">
@@ -556,7 +609,11 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- Calendar -->
         <div class="cal-section">
+<<<<<<< HEAD
             <div class="cal-section-title"> 康复打卡日历</div>
+=======
+            <div class="cal-section-title">📅 康复打卡日历</div>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="cal-nav">
                 <button id="calPrev">&#8249;</button>
                 <span class="cal-month" id="calTitle"></span>
@@ -573,11 +630,19 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
         <!-- Tasks -->
         <div class="tasks-section">
             <div class="tasks-section-title">
+<<<<<<< HEAD
                 <span> 今日康复任务</span>
                 <span class="badge badge-gray" id="taskBadge">0项</span>
             </div>
             <div id="taskList"></div>
             <button class="checkin-btn" id="checkinBtn"> 确认完成今日打卡</button>
+=======
+                <span>📋 今日康复任务</span>
+                <span class="badge badge-gray" id="taskBadge">0项</span>
+            </div>
+            <div id="taskList"></div>
+            <button class="checkin-btn" id="checkinBtn">✅ 确认完成今日打卡</button>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         </div>
 
     </div>
@@ -588,6 +653,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 <!-- ══ MOBILE BOTTOM NAV ══ -->
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
     <button class="mob-nav-btn active" onclick="mobNav('monitor',this)">
+<<<<<<< HEAD
         <span class="mob-icon"></span>监测
     </button>
     <button class="mob-nav-btn" onclick="mobNav('overview',this)">
@@ -601,6 +667,21 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     </button>
     <button class="mob-nav-btn" onclick="generatePatientReport()">
         <span class="mob-icon"></span>报告
+=======
+        <span class="mob-icon">📈</span>监测
+    </button>
+    <button class="mob-nav-btn" onclick="mobNav('overview',this)">
+        <span class="mob-icon">🏠</span>概览
+    </button>
+    <button class="mob-nav-btn" onclick="openChatFromNav()">
+        <span class="mob-icon">💬</span>沟通
+    </button>
+    <button class="mob-nav-btn" onclick="mobNav('records',this)">
+        <span class="mob-icon">📊</span>记录
+    </button>
+    <button class="mob-nav-btn" onclick="generatePatientReport()">
+        <span class="mob-icon">🤖</span>报告
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     </button>
 </nav>
 
@@ -608,7 +689,11 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 <div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
     <div class="ai-modal-box" onclick="event.stopPropagation()">
         <div class="ai-modal-header">
+<<<<<<< HEAD
             <h3> AI 康复评估报告</h3>
+=======
+            <h3>🤖 AI 康复评估报告</h3>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
         </div>
         <div class="ai-modal-progress" id="aiProgress" style="display:none;"><div class="bar"></div></div>
@@ -616,10 +701,17 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
             <div class="ai-modal-body" id="aiModalBody">
                 正在生成报告...
             </div>
+<<<<<<< HEAD
             <!--  图表区域 -->
             <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
                 <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
                     <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
+=======
+            <!-- 📊 图表区域 -->
+            <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
+                <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
+                    <span style="font-size:11px;font-weight:600;color:#0a2540;">📊 数据可视化</span>
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 </div>
                 <div class="report-chart-grid">
                     <div class="report-chart-card">
@@ -771,10 +863,17 @@ function updateCheckinBtn() {
     const btn = document.getElementById('checkinBtn');
     const todayRec = p.history.find(h => h.date === getTodayStr());
     if (todayRec && todayRec.done) {
+<<<<<<< HEAD
         btn.textContent=' 今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
     }
     const allDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
     btn.textContent = allDone ? ' 确认完成今日打卡' : ' 请先完成所有任务';
+=======
+        btn.textContent='✅ 今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
+    }
+    const allDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
+    btn.textContent = allDone ? '✅ 确认完成今日打卡' : '⏳ 请先完成所有任务';
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     btn.className = 'checkin-btn'; btn.disabled = !allDone;
 }
 
@@ -786,7 +885,11 @@ document.getElementById('checkinBtn').onclick = function() {
     p.tasks.forEach(t => t.done = false);
     saveDB();
     renderTasks(); renderCalendar(); calcStreak();
+<<<<<<< HEAD
     showToast(' 打卡成功！今日康复训练已完成。','success');
+=======
+    showToast('🎉 打卡成功！今日康复训练已完成。','success');
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
 };
 renderTasks();
 
@@ -796,9 +899,15 @@ function renderCenterStats() {
     const today = getTodayStr();
     const todayDone = p.history.some(h=>h.date===today&&h.done);
     const html = `
+<<<<<<< HEAD
         <div class="cstat"><div class="cicon">${todayDone?'':''}</div><div class="cnum" style="font-size:16px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div>
         <div class="cstat"><div class="cicon"></div><div class="cnum">${p.tasks.length}</div><div class="clbl">今日任务项</div></div>
         <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
+=======
+        <div class="cstat"><div class="cicon">${todayDone?'✅':'⏳'}</div><div class="cnum" style="font-size:16px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div>
+        <div class="cstat"><div class="cicon">📋</div><div class="cnum">${p.tasks.length}</div><div class="clbl">今日任务项</div></div>
+        <div class="cstat"><div class="cicon">📅</div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     document.getElementById('centerStats').innerHTML = html;
 }
 renderCenterStats();
@@ -816,7 +925,11 @@ window.addEventListener('storage', function(e) {
             renderCenterStats();
             renderCalendar();
             calcStreak();
+<<<<<<< HEAD
             showToast(' 收到新的康复任务，请查看！', 'success');
+=======
+            showToast('📋 收到新的康复任务，请查看！', 'success');
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         }
     }
 });
@@ -827,9 +940,15 @@ function renderOverview() {
     const today = getTodayStr();
     const todayDone = p.history.some(h=>h.date===today&&h.done);
     document.getElementById('overviewStats').innerHTML = `
+<<<<<<< HEAD
         <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div>
         <div class="cstat"><div class="cicon"></div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div>
         <div class="cstat"><div class="cicon"></div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div>`;
+=======
+        <div class="cstat"><div class="cicon">📅</div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div>
+        <div class="cstat"><div class="cicon">🔥</div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div>
+        <div class="cstat"><div class="cicon">📋</div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div>`;
+>>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     const recentEl = document.getElementById('recentRecords');
     const recs = (p.records||[]).slice(0,6);
     if (!recs.length) { recentEl.innerHTML='<div class="task-empty" style="padding:20px;">暂无执行记录</div>'; return; }
