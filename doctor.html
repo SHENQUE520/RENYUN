@@ -153,30 +153,18 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <div id="toast" class="toast"></div>
 <header class="app-header">
     <div class="left">
-<<<<<<< HEAD
         <a class="brand" href="doctor.html"> <span class="brand-text"><span>韧云</span><span>智护</span></span><small>· 医生工作台</small></a>
-=======
-        <a class="brand" href="doctor.html">🦿 <span class="brand-text"><span>韧云</span><span>智护</span></span><small>· 医生工作台</small></a>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     </div>
     <div class="right">
         <a class="user-info" href="profile.html">
             <div class="avatar" id="headerAvatar">李</div>
             <div class="detail">
                 <div class="name" id="headerName">李医生</div>
-<<<<<<< HEAD
                 <div class="role-tag"> 主治医师</div>
             </div>
         </a>
         <span class="doctor-ref" id="headerRef"></span>
         <a class="nav-btn primary" href="doctor-task.html" id="assignTaskBtn"> 发布任务</a>
-=======
-                <div class="role-tag">👨‍⚕️ 主治医师</div>
-            </div>
-        </a>
-        <span class="doctor-ref" id="headerRef"></span>
-        <a class="nav-btn primary" href="doctor-task.html" id="assignTaskBtn">📋 发布任务</a>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         <button class="nav-btn" onclick="logout()">退出</button>
     </div>
 </header>
@@ -185,11 +173,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
     <!-- Patient list -->
     <div class="card plist-card">
         <div class="card-title">
-<<<<<<< HEAD
             <span> 患者列表</span>
-=======
-            <span>👥 患者列表</span>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <span class="sub" id="pTotal">5 位</span>
         </div>
         <div class="plist-scroll" id="plistWrap"></div>
@@ -201,18 +185,13 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             <div class="detail-head">
                 <div class="dname" id="dPatientName">张明 <small>康复中</small></div>
                 <div style="display:flex;align-items:center;gap:8px;">
-<<<<<<< HEAD
                     <button class="ai-report-btn" onclick="generateDoctorReport()"> AI报告</button>
-=======
-                    <button class="ai-report-btn" onclick="generateDoctorReport()">🤖 AI报告</button>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                     <span class="badge badge-green" id="dStatusTag">标准</span>
                 </div>
             </div>
 
             <div class="stats-row" id="statsRow">
                 <div class="stat-item">
-<<<<<<< HEAD
                     <div class="icon-bg"></div>
                     <div><div class="num" id="statTotal">5</div><div class="lbl">管理患者</div></div>
                 </div>
@@ -222,17 +201,6 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
                 </div>
                 <div class="stat-item">
                     <div class="icon-bg"></div>
-=======
-                    <div class="icon-bg">📋</div>
-                    <div><div class="num" id="statTotal">5</div><div class="lbl">管理患者</div></div>
-                </div>
-                <div class="stat-item">
-                    <div class="icon-bg">🔥</div>
-                    <div><div class="num" id="statActive">0</div><div class="lbl">今日活跃</div></div>
-                </div>
-                <div class="stat-item">
-                    <div class="icon-bg">⚠️</div>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                     <div><div class="num" id="statWarn">0</div><div class="lbl">预警提醒</div></div>
                 </div>
             </div>
@@ -262,11 +230,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
                 <canvas id="doctorChart"></canvas>
             </div>
 
-<<<<<<< HEAD
             <div class="record-section"> 动作执行记录</div>
-=======
-            <div class="record-section">📊 动作执行记录</div>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <div class="record-wrap">
                 <table class="record-table" id="recordTable">
                     <thead><tr>
@@ -277,11 +241,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             </div>
 
             <div class="assign-bar">
-<<<<<<< HEAD
                 <span class="alabel"> 快速发放任务</span>
-=======
-                <span class="alabel">📤 快速发放任务</span>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 <select id="quickPatient"></select>
                 <select id="quickTask">
                     <option>直腿抬高</option><option>靠墙静蹲</option>
@@ -299,7 +259,6 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <!-- ══ DOCTOR MOBILE BOTTOM NAV ══ -->
 <nav class="doc-mobile-nav" id="docMobileNav">
     <button class="doc-mob-btn active" onclick="docMobNav('plist',this)">
-<<<<<<< HEAD
         <span class="dm-icon"></span>患者
     </button>
     <button class="doc-mob-btn" onclick="window._openChat&&window._openChat()">
@@ -310,18 +269,6 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
     </button>
     <button class="doc-mob-btn" onclick="location.href='doctor-task.html'">
         <span class="dm-icon"></span>任务
-=======
-        <span class="dm-icon">👥</span>患者
-    </button>
-    <button class="doc-mob-btn" onclick="window._openChat&&window._openChat()">
-        <span class="dm-icon">💬</span>沟通
-    </button>
-    <button class="doc-mob-btn" onclick="generateDoctorReport()">
-        <span class="dm-icon">🤖</span>报告
-    </button>
-    <button class="doc-mob-btn" onclick="location.href='doctor-task.html'">
-        <span class="dm-icon">📝</span>任务
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     </button>
 </nav>
 
@@ -329,11 +276,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
     <div class="ai-modal-box" onclick="event.stopPropagation()">
         <div class="ai-modal-header">
-<<<<<<< HEAD
             <h3> AI 康复评估报告</h3>
-=======
-            <h3>🤖 AI 康复评估报告</h3>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
             <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
         </div>
         <div class="ai-modal-progress" id="aiProgress" style="display:none;height:3px;background:#e9f0fa;overflow:hidden;flex-shrink:0;"><div class="bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);animation:progressAnim 8s ease-out forwards;"></div></div>
@@ -341,17 +284,10 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             <div class="ai-modal-body" id="aiModalBody">
                 正在生成报告...
             </div>
-<<<<<<< HEAD
             <!--  图表区域 -->
             <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
                 <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
                     <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
-=======
-            <!-- 📊 图表区域 -->
-            <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
-                <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
-                    <span style="font-size:11px;font-weight:600;color:#0a2540;">📊 数据可视化</span>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 </div>
                 <div class="report-chart-grid">
                     <div class="report-chart-card">
@@ -396,15 +332,9 @@ function renderPatientList() {
         const checkedToday = p.history.some(h => h.date === today && h.done);
         const warnCount = p.records.filter(r => r.abnormal > 0).length;
         const pill = warnCount > 0
-<<<<<<< HEAD
             ? `<span class="checkin-pill warn"> ${warnCount}</span>`
             : checkedToday
                 ? `<span class="checkin-pill"> 已打卡</span>`
-=======
-            ? `<span class="checkin-pill warn">⚠️ ${warnCount}</span>`
-            : checkedToday
-                ? `<span class="checkin-pill">✅ 已打卡</span>`
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
                 : `<span class="checkin-pill warn">未打卡</span>`;
         return `<div class="pitem ${active}" onclick="selectPatient('${p.id}')">
             <div>

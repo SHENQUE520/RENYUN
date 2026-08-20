@@ -22,11 +22,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-<<<<<<< HEAD
       font-family: 'SimSun','宋体',serif;
-=======
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     }
 
     body {
@@ -664,11 +660,7 @@
       </div>
       
       <div style="margin-top: 30px; font-size: 13px; color: #7f8c8d; line-height: 1.6; border-top: 1px solid #edf2f7; padding-top: 15px;">
-<<<<<<< HEAD
         <p><strong> 智能语音播报开启：</strong></p >
-=======
-        <p><strong>📢 智能语音播报开启：</strong></p >
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         <p>系统已连接至云端，请将硬件传感器佩戴妥当。系统将自动识别姿态并进行实时语音纠错指引。</p >
       </div>
     </div>
@@ -699,11 +691,7 @@
 
       <!-- 实时变化曲线 -->
       <div class="chart-panel">
-<<<<<<< HEAD
         <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--navy-blue);"> 实时关节姿态动态解算曲线</h3>
-=======
-        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--navy-blue);">📊 实时关节姿态动态解算曲线</h3>
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         <div style="height: clamp(180px, 25vw, 260px); position: relative;">
           <canvas id="poseChart"></canvas>
         </div>
@@ -713,11 +701,7 @@
 
   <script>
     // =========================================================================
-<<<<<<< HEAD
     //  1. 采用你源码完全一致的本地私有/公有 MQTT 连接架构
-=======
-    // 🔌 1. 采用你源码完全一致的本地私有/公有 MQTT 连接架构
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; 
     const topic = 'iot/rehab/renyun/data';
@@ -733,11 +717,7 @@
     const client = mqtt.connect(brokerUrl);
 
     // =========================================================================
-<<<<<<< HEAD
     //  2. 语音播报核心逻辑
-=======
-    // 🔊 2. 语音播报核心逻辑
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     function speak(text) {
       if ('speechSynthesis' in window) {
@@ -751,11 +731,7 @@
     }
 
     // =========================================================================
-<<<<<<< HEAD
     //  3. 动作计时器
-=======
-    // ⏱️ 3. 动作计时器
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     function updateTimer(isCorrect) {
       const timerEl = document.getElementById('timer');
@@ -779,11 +755,7 @@
     }
 
     // =========================================================================
-<<<<<<< HEAD
     //  4. 模式切换控制
-=======
-    // 🎛️ 4. 模式切换控制
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     document.querySelectorAll('.action-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -804,11 +776,7 @@
     });
 
     // =========================================================================
-<<<<<<< HEAD
     //  5. MQTT 通信监听与解算状态机
-=======
-    // 🔌 5. MQTT 通信监听与解算状态机
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     client.on('connect', () => {
       client.subscribe(topic);
@@ -840,11 +808,7 @@
         const absPitch = Math.abs(pitch);
         const absRoll = Math.abs(roll);
 
-<<<<<<< HEAD
         // =======  核心康复临床解算算法优化 =======
-=======
-        // ======= 🚀 核心康复临床解算算法优化 =======
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         if (currentMode === 'squat') { // 1. 靠墙静蹲
           if (absPitch >= 30 && absPitch <= 65) {
             feedback = "静蹲姿态优秀，请保持均匀呼吸";
@@ -924,11 +888,7 @@
           }
         }
 
-<<<<<<< HEAD
         // =======  智能看板背景与文字色彩转换 =======
-=======
-        // ======= 🎨 智能看板背景与文字色彩转换 =======
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         adviceEl.textContent = feedback;
         if (uiState === "standard") {
           cardEl.style.backgroundColor = "var(--accent-green)";
@@ -957,11 +917,7 @@
         // 更新精细计时器
         updateTimer(isCorrect);
 
-<<<<<<< HEAD
         // =======  实时曲线渲染（Chart.js） =======
-=======
-        // ======= 📈 实时曲线渲染（Chart.js） =======
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
         pitchHistory.push(pitch);
         rollHistory.push(roll);
         timeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
@@ -979,11 +935,7 @@
     });
 
     // =========================================================================
-<<<<<<< HEAD
     //  6. 图表渲染器初始化
-=======
-    // 📊 6. 图表渲染器初始化
->>>>>>> cbb53e751ac08f139b46b4a150f42d99f7bc9c90
     // =========================================================================
     function initChart() {
       chart = new Chart(document.getElementById('poseChart'), {
