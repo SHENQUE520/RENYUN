@@ -1024,15 +1024,25 @@ async function generatePatientReport() {
     const streakDays = parseInt(document.getElementById('streakNum').textContent) || 0;
     const totalCheckins = p.history.filter(h => h.done).length;
 
-    const recordSummary = (p.records || []).slice(0, 5).map(r =>
-        `${r.action}${r.pitch}°${r.status}`
+    const recordSummary = (p.records || []).slice(0, 10).map(r =>
+        `${r.time} ${r.action} ${r.pitch}° 异常${r.abnormal}次 ${r.status}`
     ).join('；') || '暂无';
 
     const taskSummary = (p.tasks || []).map(t =>
-        `${t.name}×${t.count}`
+        `${t.name}×${t.count}${t.unit}${t.done ? '(已完成)' : '(未完成)'}`
     ).join('；') || '暂无';
 
-    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
+    const historySummary = (p.history || []).slice(-7).map(h =>
+        `${h.date}${h.done ? '✓' : '✗'}`
+    ).join(' ') || '暂无';
+
+    const allTasksDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
+
+    const prompt = `我是患者${p.name}，${p.age}岁${p.gender||''}，${p.notes||p.status||'康复中'}。
+我的训练记录：${recordSummary}。
+今日任务：${taskSummary}（${allTasksDone ? '今日任务已全部完成' : '今日任务尚未全部完成'}）。
+打卡情况：累计打卡${totalCheckins}天，连续打卡${streakDays}天，近7天：${historySummary}。
+请给我生成一份康复报告（5个小标题：我的概况/训练表现/依从性/注意事项/鼓励与建议，共250字左右），最后用1-2句轻松、真诚的鼓励话语给我打气，比如加油、继续努力、根据我今日任务完成情况给出对应的肯定或提醒。`;
 
     try {
         const controller = new AbortController();
@@ -1043,11 +1053,11 @@ async function generatePatientReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
+                    { role: 'system', content: '你是亲切的康复医师，直接对患者说话。250字左右，5个小标题，纯文本，语气温暖、鼓励，结尾要有真诚的加油鼓励话语。' },
                     { role: 'user', content: prompt }
                 ],
-                temperature: 0.5,
-                max_tokens: 300,
+                temperature: 0.6,
+                max_tokens: 500,
                 stream: true
             }),
             signal: controller.signal

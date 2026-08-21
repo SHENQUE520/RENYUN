@@ -589,15 +589,26 @@ async function generateDoctorReport() {
         else if (d < cursor) break;
     }
 
-    const recordSummary = (p.records || []).slice(0, 5).map(r =>
-        `${r.action}${r.pitch}°${r.status}`
+    const recordSummary = (p.records || []).slice(0, 10).map(r =>
+        `${r.time} ${r.action} ${r.pitch}° 异常${r.abnormal}次 ${r.status}`
     ).join('；') || '暂无';
 
     const taskSummary = (p.tasks || []).map(t =>
-        `${t.name}×${t.count}`
+        `${t.name}×${t.count}${t.unit}${t.done ? '(已完成)' : '(未完成)'}`
     ).join('；') || '暂无';
 
-    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
+    const historySummary = (p.history || []).slice(-7).map(h =>
+        `${h.date}${h.done ? '✓' : '✗'}`
+    ).join(' ') || '暂无';
+
+    const standardCount = (p.records || []).filter(r => r.status === '标准').length;
+    const totalRecords = (p.records || []).length;
+
+    const prompt = `患者：${p.name}，${p.age}岁${p.gender||''}，诊断：${p.notes||p.status||'康复中'}，手术日期：${p.surgeryDate||'未知'}，主治医生：${p.doctor||'未知'}。
+训练记录（最近${totalRecords}条，标准动作${standardCount}条）：${recordSummary}。
+今日任务：${taskSummary}。
+打卡情况：累计${totalCheckins}天，连续${streakDays}天，近7天：${historySummary}。
+请生成详细康复评估报告（6个小标题：患者概况/训练数据分析/动作质量评估/依从性评价/风险提示/临床建议，共300字左右）。`;
 
     try {
         const controller = new AbortController();
@@ -608,11 +619,11 @@ async function generateDoctorReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
+                    { role: 'system', content: '你是专业的康复医师，为主治医生撰写客观、专业的患者康复评估报告。300字左右，6个小标题，纯文本，语气专业、有数据支撑。' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.5,
-                max_tokens: 300,
+                max_tokens: 600,
                 stream: true
             }),
             signal: controller.signal
