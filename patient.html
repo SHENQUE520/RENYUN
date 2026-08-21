@@ -1037,12 +1037,36 @@ async function generatePatientReport() {
     ).join(' ') || '暂无';
 
     const allTasksDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
+    const doneTaskCount = p.tasks.filter(t => t.done).length;
+
+    const totalRec = p.records.length || 1;
+    const standardCount = (p.records || []).filter(r => r.status === '标准').length;
+    const avgPitch = (p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec).toFixed(1);
+    const last7Rates = (p.records || []).slice(0, 7).map(r => {
+        const pitch = parseFloat(r.pitch) || 0;
+        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
+    });
+    const standardRatio = Math.min(100, Math.round((standardCount / totalRec) * 100));
+    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
+    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
+    const strength = Math.min(100, Math.round((p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec / 40) * 100));
+    const taskProgress = Math.min(100, Math.round((doneTaskCount / Math.max(1, p.tasks.length)) * 100));
 
     const prompt = `我是患者${p.name}，${p.age}岁${p.gender||''}，${p.notes||p.status||'康复中'}。
-我的训练记录：${recordSummary}。
-今日任务：${taskSummary}（${allTasksDone ? '今日任务已全部完成' : '今日任务尚未全部完成'}）。
-打卡情况：累计打卡${totalCheckins}天，连续打卡${streakDays}天，近7天：${historySummary}。
-请给我生成一份康复报告（5个小标题：我的概况/训练表现/依从性/注意事项/鼓励与建议，共250字左右），最后用1-2句轻松、真诚的鼓励话语给我打气，比如加油、继续努力、根据我今日任务完成情况给出对应的肯定或提醒。`;
+
+【我的训练记录明细】（共${totalRec}条，标准动作${standardCount}条，平均角度${avgPitch}°）
+${recordSummary}
+
+【正确率趋势数据】（近7次，对应图表"正确率趋势"）：${last7Rates.join('% , ')}%
+
+【康复雷达五维度评分】（对应图表"康复雷达"，满分100）
+动作质量${standardRatio}分 / 稳定性${stability}分 / 依从性${compliance}分 / 力量${strength}分 / 任务完成${taskProgress}分
+
+【今日任务】${taskSummary}（今日共${p.tasks.length}项任务，已完成${doneTaskCount}项，${allTasksDone ? '已全部完成' : '尚未全部完成'}）
+
+【打卡统计】累计打卡${totalCheckins}天，连续打卡${streakDays}天，近7天：${historySummary}
+
+请结合以上训练记录、正确率趋势和康复雷达五维度评分，给我生成一份详细的康复报告（5个小标题：我的概况/训练表现分析/康复各维度评分解读/依从性与打卡情况/鼓励与建议，共350字左右）。要求在报告中具体提到平均角度、正确率、雷达各维度分数等数字。最后单独用2-3句话，用轻松、真诚、有感染力的语气鼓励我，明确提到"加油"或"继续努力"，并且要根据我${allTasksDone ? '今日任务已全部完成' : '今日任务还没完成'}的情况，给出对应的表扬或提醒（比如已完成就夸我坚持得好，未完成就温和提醒我抽空完成）。`;
 
     try {
         const controller = new AbortController();
@@ -1053,11 +1077,11 @@ async function generatePatientReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是亲切的康复医师，直接对患者说话。250字左右，5个小标题，纯文本，语气温暖、鼓励，结尾要有真诚的加油鼓励话语。' },
+                    { role: 'system', content: '你是亲切的康复医师，直接对患者说话。350字左右，5个小标题，纯文本，语气温暖、鼓励，报告要引用具体数字，结尾必须有2-3句真诚的加油鼓励话语，并根据今日任务完成情况给出对应的表扬或提醒。' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.6,
-                max_tokens: 500,
+                max_tokens: 700,
                 stream: true
             }),
             signal: controller.signal

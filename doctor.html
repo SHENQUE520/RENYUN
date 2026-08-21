@@ -601,14 +601,34 @@ async function generateDoctorReport() {
         `${h.date}${h.done ? '✓' : '✗'}`
     ).join(' ') || '暂无';
 
+    const totalRec = p.records.length || 1;
     const standardCount = (p.records || []).filter(r => r.status === '标准').length;
-    const totalRecords = (p.records || []).length;
+    const abnormalTotal = (p.records || []).reduce((s, r) => s + (parseInt(r.abnormal) || 0), 0);
+    const avgPitch = (p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec).toFixed(1);
+    const last7Rates = (p.records || []).slice(0, 7).map(r => {
+        const pitch = parseFloat(r.pitch) || 0;
+        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
+    });
+    const standardRatio = Math.min(100, Math.round((standardCount / totalRec) * 100));
+    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
+    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
+    const taskProgress = Math.min(100, Math.round((p.tasks.filter(t => t.done).length / Math.max(1, p.tasks.length)) * 100));
 
     const prompt = `患者：${p.name}，${p.age}岁${p.gender||''}，诊断：${p.notes||p.status||'康复中'}，手术日期：${p.surgeryDate||'未知'}，主治医生：${p.doctor||'未知'}。
-训练记录（最近${totalRecords}条，标准动作${standardCount}条）：${recordSummary}。
-今日任务：${taskSummary}。
-打卡情况：累计${totalCheckins}天，连续${streakDays}天，近7天：${historySummary}。
-请生成详细康复评估报告（6个小标题：患者概况/训练数据分析/动作质量评估/依从性评价/风险提示/临床建议，共300字左右）。`;
+
+【训练记录明细】（共${totalRec}条，标准动作${standardCount}条，异常累计${abnormalTotal}次，平均角度${avgPitch}°）
+${recordSummary}
+
+【正确率趋势数据】（近7次，对应图表"正确率趋势"）：${last7Rates.join('% , ')}%
+
+【康复雷达四维度评分】（对应图表"康复雷达"，满分100）
+动作质量${standardRatio}分 / 稳定性${stability}分 / 依从性${compliance}分 / 任务完成${taskProgress}分
+
+【今日任务】${taskSummary}
+
+【打卡统计】累计${totalCheckins}天，连续${streakDays}天，近7天记录：${historySummary}
+
+请结合以上训练记录明细、正确率趋势数据、康复雷达四维度评分，生成一份详细的康复评估报告（6个小标题：患者概况/训练数据分析/动作质量评估/依从性评价/风险提示/临床建议，共450字左右）。要求在"训练数据分析"和"动作质量评估"部分明确引用具体数字（如平均角度、正确率、各维度评分），让报告和图表数据能相互印证。`;
 
     try {
         const controller = new AbortController();
@@ -619,11 +639,11 @@ async function generateDoctorReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是专业的康复医师，为主治医生撰写客观、专业的患者康复评估报告。300字左右，6个小标题，纯文本，语气专业、有数据支撑。' },
+                    { role: 'system', content: '你是专业的康复医师，为主治医生撰写详细、专业的患者康复评估报告。450字左右，6个小标题，纯文本，语气专业、有数据支撑，报告内容要具体引用给出的数字数据。' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.5,
-                max_tokens: 600,
+                max_tokens: 900,
                 stream: true
             }),
             signal: controller.signal
