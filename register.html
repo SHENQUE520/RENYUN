@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>韧云智护 · 注册</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#f0f7ff 0%,#dbeafe 100%);padding:24px;}
+.login-container{
+    display:flex;max-width:1020px;width:100%;background:#fff;
+    border-radius:8px;box-shadow:0 25px 60px rgba(37,99,235,0.13);
+    overflow:hidden;min-height:560px;
+}
+.login-brand{
+    flex:1;background:linear-gradient(135deg,#1a4b8c 0%,#2563eb 100%);
+    padding:48px 40px;display:flex;flex-direction:column;justify-content:center;
+    color:#fff;position:relative;overflow:hidden;
+}
+.login-brand::after{
+    content:'';position:absolute;top:-40%;right:-20%;
+    width:300px;height:300px;background:rgba(255,255,255,0.06);border-radius:50%;
+}
+.brand-logo{font-size:38px;font-weight:700;letter-spacing:2px;display:flex;align-items:center;gap:12px;z-index:1;}
+.brand-logo span{background:rgba(255,255,255,0.18);padding:4px 14px;border-radius:6px;font-size:13px;font-weight:400;letter-spacing:0;}
+.brand-slogan{font-size:18px;font-weight:300;margin-top:14px;opacity:0.85;z-index:1;letter-spacing:0.5px;}
+.feature-tags{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;z-index:1;}
+.feature-tags .tag{
+    background:rgba(255,255,255,0.14);backdrop-filter:blur(4px);
+    padding:5px 16px;border-radius:6px;font-size:13px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+.register-form{flex:0 0 440px;padding:36px 40px;display:flex;flex-direction:column;
+    justify-content:flex-start;overflow-y:auto;max-height:100vh;}
+.register-form h2{font-size:22px;font-weight:600;color:#0a2540;margin-bottom:4px;}
+.register-form .sub{color:#64748b;font-size:14px;margin-bottom:20px;}
+.role-selector{display:flex;gap:10px;margin-bottom:18px;background:#f1f5f9;border-radius:6px;padding:4px;}
+.role-btn{
+    flex:1;padding:9px 0;border:none;border-radius:5px;background:transparent;
+    font-size:14px;font-weight:500;color:#64748b;cursor:pointer;transition:0.2s;
+}
+.role-btn.active{background:#fff;color:#2563eb;box-shadow:0 4px 12px rgba(37,99,235,0.13);}
+.role-btn:hover:not(.active){color:#1e293b;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.register-form .field{margin-bottom:12px;}
+.register-form .field label{font-size:12px;}
+.login-btn{
+    width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
+    border-radius:5px;font-size:15px;font-weight:600;cursor:pointer;
+    transition:0.25s;margin-top:6px;
+}
+.login-btn:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 8px 20px rgba(37,99,235,0.28);}
+.login-btn:active{transform:scale(0.98);}
+.login-btn:disabled{background:#94a3b8;cursor:not-allowed;transform:none;box-shadow:none;}
+.back-login{margin-top:12px;font-size:13px;color:#64748b;text-align:center;}
+.back-login a{color:#2563eb;text-decoration:none;}
+.back-login a:hover{text-decoration:underline;}
+@media(max-width:960px){
+    .login-container{flex-direction:column;max-width:480px;overflow-y:auto;max-height:96vh;}
+    .login-brand{padding:28px;min-height:unset;}
+    .register-form{flex:unset;padding:28px 24px;max-height:unset;overflow-y:visible;}
+}
+@media(max-width:500px){
+    .register-form{padding:20px 16px;}
+    .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<div class="login-container">
+    <div class="login-brand">
+        <div class="brand-logo">韧云智护 <span>RENYUN</span></div>
+        <div class="brand-slogan">智能康复训练监视系统</div>
+        <div class="feature-tags">
+            <span class="tag">实时姿态监测</span>
+            <span class="tag">AI康复报告</span>
+            <span class="tag">医患协同</span>
+        </div>
+    </div>
+
+    <div class="register-form">
+        <h2>创建账号</h2>
+        <p class="sub">选择身份，填写注册信息</p>
+
+        <div class="role-selector">
+            <button class="role-btn active" data-role="patient">使用者</button>
+            <button class="role-btn" data-role="doctor">医生</button>
+        </div>
+
+        <!-- 患者注册表单 -->
+        <div id="patientForm">
+            <div class="form-row">
+                <div class="field">
+                    <label>姓名 *</label>
+                    <input type="text" id="pName" placeholder="真实姓名"/>
+                </div>
+                <div class="field">
+                    <label>性别</label>
+                    <select id="pGender">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>年龄</label>
+                    <input type="number" id="pAge" min="1" max="120" placeholder="岁"/>
+                </div>
+                <div class="field">
+                    <label>登录用户名 *</label>
+                    <input type="text" id="pUsername" placeholder="字母+数字"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>密码 *</label>
+                    <input type="password" id="pPassword" placeholder="设置密码"/>
+                </div>
+                <div class="field">
+                    <label>确认密码 *</label>
+                    <input type="password" id="pConfirm" placeholder="再次输入"/>
+                </div>
+            </div>
+            <div class="field">
+                <label>病因 / 诊断</label>
+                <input type="text" id="pDiagnosis" placeholder="如：左膝前交叉韧带重建术后"/>
+            </div>
+            <div class="field">
+                <label>所属医院</label>
+                <input type="text" id="pHospital" placeholder="就诊医院名称"/>
+            </div>
+            <div class="field">
+                <label>主治医生</label>
+                <select id="doctorSelect" style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;
+                    border-radius:4px;font-size:14px;font-family:inherit;background:#fafcff;">
+                    <option value="">-- 加载中 --</option>
+                </select>
+                <input type="text" id="doctorFreeText" placeholder="填写医生姓名"
+                    style="display:none;width:100%;margin-top:6px;padding:11px 14px;
+                    border:1.5px solid #e2e8f0;border-radius:4px;font-size:14px;font-family:inherit;"/>
+                <div class="hint" style="font-size:11px;color:#94a3b8;margin-top:3px;">
+                    注册成功后需等待该医生在系统中审核确认
+                </div>
+            </div>
+        </div>
+
+        <!-- 医生注册表单 -->
+        <div id="doctorForm" style="display:none;">
+            <div class="form-row">
+                <div class="field">
+                    <label>姓名 *</label>
+                    <input type="text" id="dName" placeholder="真实姓名"/>
+                </div>
+                <div class="field">
+                    <label>性别</label>
+                    <select id="dGender">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label>登录用户名 *</label>
+                <input type="text" id="dUsername" placeholder="字母+数字"/>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>密码 *</label>
+                    <input type="password" id="dPassword" placeholder="设置密码"/>
+                </div>
+                <div class="field">
+                    <label>确认密码 *</label>
+                    <input type="password" id="dConfirm" placeholder="再次输入"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>所在医院</label>
+                    <input type="text" id="dHospital" placeholder="医院名称"/>
+                </div>
+                <div class="field">
+                    <label>科室</label>
+                    <input type="text" id="dDept" placeholder="如：骨科康复科"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label>职称</label>
+                    <input type="text" id="dTitle" placeholder="如：主任医师"/>
+                </div>
+                <div class="field">
+                    <label>专长</label>
+                    <input type="text" id="dSpeciality" placeholder="专业方向"/>
+                </div>
+            </div>
+        </div>
+
+        <button class="login-btn" id="registerBtn">注册 →</button>
+        <div class="back-login">已有账号？<a href="login.html">返回登录</a></div>
+    </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/utils.js"></script>
+<script>
+let selectedRole = 'patient';
+
+document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedRole = this.dataset.role;
+        document.getElementById('patientForm').style.display = selectedRole === 'patient' ? '' : 'none';
+        document.getElementById('doctorForm').style.display = selectedRole === 'doctor' ? '' : 'none';
+    });
+});
+
+async function loadDoctors() {
+    try {
+        const resp = await fetch('/api/doctors');
+        const doctors = await resp.json();
+        const sel = document.getElementById('doctorSelect');
+        if (!doctors.length) {
+            sel.style.display = 'none';
+            document.getElementById('doctorFreeText').style.display = '';
+            return;
+        }
+        sel.innerHTML = '<option value="">-- 选择主治医生 --</option>' +
+            doctors.map(d =>
+                `<option value="${d.id}">${d.name}${d.title ? ' · ' + d.title : ''}${d.hospital ? ' · ' + d.hospital : ''}</option>`
+            ).join('') +
+            '<option value="__other__">其他（手动输入）</option>';
+    } catch(e) {
+        document.getElementById('doctorSelect').style.display = 'none';
+        document.getElementById('doctorFreeText').style.display = '';
+    }
+}
+
+document.getElementById('doctorSelect').addEventListener('change', function() {
+    document.getElementById('doctorFreeText').style.display = this.value === '__other__' ? '' : 'none';
+});
+
+document.getElementById('registerBtn').addEventListener('click', doRegister);
+
+async function doRegister() {
+    const btn = document.getElementById('registerBtn');
+    btn.disabled = true;
+    btn.textContent = '注册中...';
+    try {
+        let body;
+        if (selectedRole === 'patient') {
+            const name     = document.getElementById('pName').value.trim();
+            const gender   = document.getElementById('pGender').value;
+            const age      = document.getElementById('pAge').value;
+            const username = document.getElementById('pUsername').value.trim();
+            const password = document.getElementById('pPassword').value;
+            const confirm  = document.getElementById('pConfirm').value;
+            const diagnosis= document.getElementById('pDiagnosis').value.trim();
+            const hospital = document.getElementById('pHospital').value.trim();
+            const selEl    = document.getElementById('doctorSelect');
+            const selVal   = selEl.style.display !== 'none' ? selEl.value : '';
+            const doctorId = (selVal && selVal !== '__other__') ? selVal : '';
+            const doctorFreeText = document.getElementById('doctorFreeText').value.trim();
+
+            if (!name || !username || !password) { showToast('请填写姓名、用户名和密码', 'error'); return; }
+            if (password !== confirm) { showToast('两次密码不一致', 'error'); return; }
+            body = { role:'patient', name, gender, age: parseInt(age)||null,
+                     username, password, diagnosis, hospital, doctorId, doctorFreeText };
+        } else {
+            const name       = document.getElementById('dName').value.trim();
+            const gender     = document.getElementById('dGender').value;
+            const username   = document.getElementById('dUsername').value.trim();
+            const password   = document.getElementById('dPassword').value;
+            const confirm    = document.getElementById('dConfirm').value;
+            const hospital   = document.getElementById('dHospital').value.trim();
+            const department = document.getElementById('dDept').value.trim();
+            const title      = document.getElementById('dTitle').value.trim();
+            const speciality = document.getElementById('dSpeciality').value.trim();
+
+            if (!name || !username || !password) { showToast('请填写姓名、用户名和密码', 'error'); return; }
+            if (password !== confirm) { showToast('两次密码不一致', 'error'); return; }
+            body = { role:'doctor', name, gender, username, password, hospital, department, title, speciality };
+        }
+
+        const resp = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+
+        if (resp.status === 409) { showToast('用户名已存在，请更换', 'error'); return; }
+        if (!resp.ok) { showToast(data.error || '注册失败，请重试', 'error'); return; }
+
+        if (selectedRole === 'patient') {
+            showToast('注册成功！请等待医生审核', 'success');
+        } else {
+            showToast('注册成功！即可登录', 'success');
+        }
+        setTimeout(() => window.location.href = 'login.html', 1800);
+    } catch(e) {
+        showToast('网络错误，请确认服务器已启动', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '注册 →';
+    }
+}
+
+loadDoctors();
+</script>
+</body>
+</html>

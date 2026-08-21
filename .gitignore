@@ -1,2 +1,6 @@
 node_modules/
 .env
+rehab.db
+rehab.db-shm
+rehab.db-wal
+node_modules/

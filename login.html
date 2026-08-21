@@ -91,7 +91,11 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
 <div id="toast" class="toast"></div>
 
 <!-- About button top-right -->
-<div style="position:fixed;top:18px;right:24px;z-index:200;">
+<div style="position:fixed;top:18px;right:24px;z-index:200;display:flex;gap:10px;">
+    <button onclick="window.location.href='register.html'" style="padding:8px 20px;border:1.5px solid rgba(255,255,255,0.6);
+        border-radius:30px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);
+        color:#1a4b8c;font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;
+        box-shadow:0 2px 12px rgba(37,99,235,0.1);">注册</button>
     <button onclick="openAbout()" style="padding:8px 20px;border:1.5px solid rgba(255,255,255,0.6);
         border-radius:30px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);
         color:#1a4b8c;font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;
@@ -125,23 +129,35 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
         <div class="about-modal-pad" style="flex:1;overflow-y:auto;">
             <!-- Product tab -->
             <div id="tabContentProduct">
+                <!-- 一代/二代子标签 -->
+                <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #f1f5f9;">
+                    <button id="genBtn1" onclick="switchGen(1)"
+                        style="padding:8px 22px;border:none;background:none;font-size:14px;font-weight:600;
+                        color:#2563eb;border-bottom:2.5px solid #2563eb;margin-bottom:-2px;cursor:pointer;transition:0.2s;font-family:inherit;">
+                        第一代产品</button>
+                    <button id="genBtn2" onclick="switchGen(2)"
+                        style="padding:8px 22px;border:none;background:none;font-size:14px;font-weight:500;
+                        color:#94a3b8;border-bottom:2.5px solid transparent;margin-bottom:-2px;cursor:pointer;transition:0.2s;font-family:inherit;">
+                        第二代产品</button>
+                </div>
+
+                <!-- 第一代 -->
+                <div id="genContent1">
                 <div style="margin-bottom:28px;">
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
                         <span style="font-size:36px;"></span>
                         <div>
-                            <div style="font-size:22px;font-weight:700;color:#0a2540;letter-spacing:0.5px;">韧云智护</div>
-                            <div style="font-size:13px;color:#64748b;margin-top:2px;">智能韧带重建康复助手 · v2.0</div>
+                            <div style="font-size:22px;font-weight:700;color:#0a2540;letter-spacing:0.5px;">韧云智护 · 第一代</div>
+                            <div style="font-size:13px;color:#64748b;margin-top:2px;">智能韧带重建康复助手 · v1.0</div>
                         </div>
                     </div>
                     <p style="font-size:14px;color:#475569;line-height:1.8;max-width:640px;">
-                        韧云智护是一套面向膝关节韧带重建术后患者的智能远程康复管理系统，连接患者与主治医生，
+                        韧云智护第一代产品是面向膝关节韧带重建术后患者的智能远程康复管理系统，连接患者与主治医生，
                         通过腿环传感器实时采集动作数据，配合医生远程指导，让每一位患者在家也能完成专业级康复训练。
                     </p>
                 </div>
-                <!-- Product images -->
                 <div class="about-product-grid">
-                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
-                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                    <div style="border-radius:8px;overflow:hidden;border:1px solid #e9f0fa;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
                         <img src="产品1.jpg" alt="产品图1" style="width:100%;height:160px;object-fit:cover;display:block;"/>
                         <div style="padding:12px 14px;background:#fff;">
                             <div style="font-size:13px;font-weight:600;color:#0a2540;">智能腿环设备</div>
@@ -150,8 +166,7 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
                             </div>
                         </div>
                     </div>
-                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
-                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                    <div style="border-radius:8px;overflow:hidden;border:1px solid #e9f0fa;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
                         <img src="产品3 (1).jpg" alt="产品图2" style="width:100%;height:160px;object-fit:cover;display:block;"/>
                         <div style="padding:12px 14px;background:#fff;">
                             <div style="font-size:13px;font-weight:600;color:#0a2540;">患者康复端</div>
@@ -160,8 +175,7 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
                             </div>
                         </div>
                     </div>
-                    <div style="border-radius:16px;overflow:hidden;border:1px solid #e9f0fa;
-                        box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                    <div style="border-radius:8px;overflow:hidden;border:1px solid #e9f0fa;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
                         <img src="产品3 (2).jpg" alt="产品图3" style="width:100%;height:160px;object-fit:cover;display:block;"/>
                         <div style="padding:12px 14px;background:#fff;">
                             <div style="font-size:13px;font-weight:600;color:#0a2540;">医生工作台</div>
@@ -171,8 +185,7 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
                         </div>
                     </div>
                 </div>
-                <!-- Features list -->
-                <div style="background:#f8fbff;border-radius:16px;padding:20px 24px;border:1px solid #e9f0fa;">
+                <div style="background:#f8fbff;border-radius:8px;padding:20px 24px;border:1px solid #e9f0fa;margin-top:20px;">
                     <div style="font-size:14px;font-weight:600;color:#0a2540;margin-bottom:14px;">核心功能</div>
                     <div class="about-features-grid">
                         <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -207,6 +220,75 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
                         </div>
                     </div>
                 </div>
+                </div><!-- end genContent1 -->
+                <!-- 第二代 -->
+                <div id="genContent2" style="display:none;">
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-size:22px;font-weight:700;color:#0a2540;letter-spacing:0.5px;">韧云智护 · 第二代</div>
+                            <div style="font-size:13px;color:#2563eb;margin-top:2px;font-weight:500;">智能韧带重建康复助手 · v2.0 · 华为云版</div>
+                        </div>
+                    </div>
+                    <p style="font-size:14px;color:#475569;line-height:1.8;max-width:640px;">
+                        第二代韧云智护在一代基础上全面升级，采用华为云 IoT 平台作为数据中台，硬件由 ESP32-S3 主控升级为搭载 FreeRTOS 的双核方案，
+                        新增数据库持久化存储、医患注册与审核流程，并引入 AI 大模型（DeepSeek）实时生成个性化康复评估报告，实现从设备到云端的全链路闭环管理。
+                    </p>
+                </div>
+                <!-- 二代产品图 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+                    <div style="border-radius:8px;overflow:hidden;border:1px solid #e9f0fa;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                        <img src="二代产品图.jpg" alt="二代产品" style="width:100%;height:200px;object-fit:cover;display:block;"/>
+                        <div style="padding:12px 14px;background:#fff;">
+                            <div style="font-size:13px;font-weight:600;color:#0a2540;">第二代智能腿环</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5;">
+                                ESP32-S3 双核主控 + FreeRTOS 实时操作系统，搭载 MPU6050 六轴IMU，支持 MQTT over TLS 加密上云，
+                                配备 OLED 状态显示屏，设备端实时姿态解算，续航提升至 96 小时。
+                            </div>
+                        </div>
+                    </div>
+                    <div style="border-radius:8px;overflow:hidden;border:1px solid #e9f0fa;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+                        <img src="二代产品功能讲解图.jpg" alt="功能架构" style="width:100%;height:200px;object-fit:cover;display:block;"/>
+                        <div style="padding:12px 14px;background:#fff;">
+                            <div style="font-size:13px;font-weight:600;color:#0a2540;">系统功能架构</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5;">
+                                设备层采集 → 华为云 IoT 平台中转 → Node.js 后端处理 → SQLite 持久化存储 → Web 端实时展示，
+                                全链路数据流转，支持多患者并发接入与 AI 报告生成。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 二代新增功能 -->
+                <div style="background:#f0f7ff;border-radius:8px;padding:20px 24px;border:1px solid #dbeafe;margin-bottom:14px;">
+                    <div style="font-size:14px;font-weight:600;color:#0a2540;margin-bottom:14px;">二代新增功能</div>
+                    <div class="about-features-grid">
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">华为云 IoT 接入</div>
+                            <div style="font-size:12px;color:#64748b;">设备通过 MQTT 协议直连华为云 IoT 平台，数据安全加密上传</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">AI 康复评估报告</div>
+                            <div style="font-size:12px;color:#64748b;">接入 DeepSeek 大模型，训练结束后自动生成专业个性化康复建议</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">数据库持久化</div>
+                            <div style="font-size:12px;color:#64748b;">SQLite 存储用户账号、消息、训练记录，重启不丢失，支持切换云数据库</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">注册与审核流程</div>
+                            <div style="font-size:12px;color:#64748b;">患者注册后需医生审核确认，规范医患绑定关系，保障数据安全</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">FreeRTOS 多任务</div>
+                            <div style="font-size:12px;color:#64748b;">硬件端多任务并发，传感器采集、数据上传、显示刷新互不阻塞</div></div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div><div style="font-size:13px;font-weight:500;color:#1e293b;">训练记录自动归档</div>
+                            <div style="font-size:12px;color:#64748b;">超过 30 天的训练数据自动清理，保持系统轻量高效运行</div></div>
+                        </div>
+                    </div>
+                </div>
+                </div><!-- end genContent2 -->
             </div>
             <!-- Team tab -->
             <div id="tabContentTeam" style="display:none;">
@@ -319,6 +401,9 @@ body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-conten
             <input type="password" id="loginPass" value="123456" placeholder="请输入密码"/>
         </div>
         <button class="login-btn" id="loginBtn">进入系统 →</button>
+        <button onclick="window.location.href='register.html'" style="width:100%;padding:10px;
+            background:transparent;color:#2563eb;border:none;font-size:13px;cursor:pointer;
+            margin-top:2px;font-family:inherit;">还没有账号？立即注册</button>
         <div class="demo-hint">
             演示账号：<kbd>zhangsan</kbd> / <kbd>123456</kbd>（使用者）<br/>
             <kbd>doctor</kbd> / <kbd>123456</kbd>（医生）
@@ -371,6 +456,20 @@ window.openAbout = openAbout;
 window.closeAbout = closeAbout;
 window.switchAboutTab = switchAboutTab;
 
+function switchGen(gen) {
+    document.getElementById('genContent1').style.display = gen === 1 ? '' : 'none';
+    document.getElementById('genContent2').style.display = gen === 2 ? '' : 'none';
+    const b1 = document.getElementById('genBtn1');
+    const b2 = document.getElementById('genBtn2');
+    b1.style.color = gen === 1 ? '#2563eb' : '#94a3b8';
+    b1.style.borderBottomColor = gen === 1 ? '#2563eb' : 'transparent';
+    b1.style.fontWeight = gen === 1 ? '600' : '500';
+    b2.style.color = gen === 2 ? '#2563eb' : '#94a3b8';
+    b2.style.borderBottomColor = gen === 2 ? '#2563eb' : 'transparent';
+    b2.style.fontWeight = gen === 2 ? '600' : '500';
+}
+window.switchGen = switchGen;
+
 function submitContact(e) {
     e.preventDefault();
     const name    = document.getElementById('contactName').value.trim();
@@ -387,33 +486,57 @@ function submitContact(e) {
 }
 window.submitContact = submitContact;
 
-function doLogin() {
+async function doLogin() {
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
     if (!user || !pass) { showToast('请输入账号和密码', 'error'); return; }
 
-    if (selectedRole === 'patient') {
-        const p = DB.patients.find(p => p.username === user || p.name === user);
-        if (p && p.password === pass) {
-            DB.currentUser = 'patient';
-            DB.currentPatientId = p.id;
-            saveDB();
-            showToast('欢迎回来，' + p.name + '！', 'success');
-            setTimeout(() => window.location.href = 'patient.html', 600);
-        } else {
-            showToast('账号或密码错误', 'error');
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = '登录中...';
+    try {
+        const resp = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass, role: selectedRole })
+        });
+        const data = await resp.json();
+
+        if (resp.status === 403) {
+            if (data.code === 'pending')  showToast('等待医生审核，请耐心等待', 'info');
+            if (data.code === 'rejected') showToast('注册申请已被拒绝，请联系医生', 'error');
+            return;
         }
-    } else {
-        const d = DB.doctors.find(d => d.username === user);
-        if (d && d.password === pass) {
-            DB.currentUser = 'doctor';
-            DB.currentDoctorId = d.id;
-            saveDB();
-            showToast('欢迎，' + d.name + '！', 'success');
-            setTimeout(() => window.location.href = 'doctor.html', 600);
+        if (!resp.ok) { showToast(data.error || '账号或密码错误', 'error'); return; }
+
+        const u = data.user;
+        DB.currentUser = u.role;
+        if (u.role === 'patient') {
+            DB.currentPatientId = u.id;
+            if (!DB.patients.find(p => p.id === u.id)) {
+                DB.patients.push({ id:u.id, username:u.username, password:u.password,
+                    name:u.name, gender:u.gender, age:u.age, phone:u.phone||'',
+                    emergencyContact:u.emergency_contact||'', surgeryDate:u.surgery_date||'',
+                    notes:u.notes||'', doctor:u.doctor_name||'', status:u.status,
+                    history:[], tasks:[], records:[], monitorData:[] });
+            }
         } else {
-            showToast('账号或密码错误', 'error');
+            DB.currentDoctorId = u.id;
+            if (!DB.doctors.find(d => d.id === u.id)) {
+                DB.doctors.push({ id:u.id, username:u.username, password:u.password,
+                    name:u.name, gender:u.gender, title:u.title||'',
+                    department:u.department||'', hospital:u.hospital||'',
+                    speciality:u.speciality||'', bio:u.bio||'', phone:u.phone||'' });
+            }
         }
+        saveDB();
+        showToast('欢迎回来，' + u.name + '！', 'success');
+        setTimeout(() => window.location.href = u.role === 'patient' ? 'patient.html' : 'doctor.html', 600);
+    } catch(e) {
+        showToast('网络错误，请确认服务器已启动', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '进入系统 →';
     }
 }
 </script>
