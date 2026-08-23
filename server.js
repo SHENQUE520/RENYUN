@@ -127,6 +127,50 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// ============ 任务 API ============
+
+// 获取患者任务列表
+app.get('/api/tasks/:patientId', (req, res) => {
+  const tasks = queries.getTasksByPatient.all(req.params.patientId);
+  res.json(tasks);
+});
+
+// 医生发布任务（upsert by name）
+app.post('/api/tasks/:patientId', (req, res) => {
+  const { patientId } = req.params;
+  const { name, count, unit, key_points, details } = req.body || {};
+  if (!name) return res.status(400).json({ error: '缺少任务名称' });
+
+  const db = require('./db/sqlite').db;
+  const existing = db.prepare('SELECT id FROM tasks WHERE patient_id=? AND name=?').get(patientId, name);
+  if (existing) {
+    db.prepare('UPDATE tasks SET count=?, unit=?, key_points=?, details=?, done=0 WHERE id=?')
+      .run(count || 10, unit || '次', key_points || '', details || '', existing.id);
+  } else {
+    db.prepare('INSERT INTO tasks(id,patient_id,name,count,unit,key_points,details,done) VALUES(?,?,?,?,?,?,?,0)')
+      .run(require('./db/sqlite').randomUUID(), patientId, name, count || 10, unit || '次', key_points || '', details || '');
+  }
+  // SSE 广播新任务通知给患者
+  sseClients.forEach(c => {
+    try { c.res.write(`data: ${JSON.stringify({ type: 'new_task', patientId })}\n\n`); } catch(_) {}
+  });
+  res.json({ ok: true });
+});
+
+// 更新任务状态（患者端开始/停止/完成）
+app.patch('/api/tasks/:taskId', (req, res) => {
+  const { done, status } = req.body || {};
+  const db = require('./db/sqlite').db;
+  const task = db.prepare('SELECT * FROM tasks WHERE id=?').get(req.params.taskId);
+  if (!task) return res.status(404).json({ error: 'not found' });
+  if (done !== undefined) db.prepare('UPDATE tasks SET done=? WHERE id=?').run(done ? 1 : 0, req.params.taskId);
+  // SSE 广播任务状态变更给医生端
+  sseClients.forEach(c => {
+    try { c.res.write(`data: ${JSON.stringify({ type: 'task_update', taskId: req.params.taskId, patientId: task.patient_id, done })}\n\n`); } catch(_) {}
+  });
+  res.json({ ok: true });
+});
+
 // ============ 实时消息 API ============
 const sseClients = [];
 

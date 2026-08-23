@@ -166,19 +166,39 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 .tasks-section{}
 .tasks-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .task-item{
-    padding:11px 14px;border-radius:12px;background:#f8fbff;
+    padding:11px 14px;border-radius:6px;background:#f8fbff;
     border:1px solid #eef2f6;margin-bottom:8px;
 }
-.task-item-head{display:flex;align-items:center;justify-content:space-between;}
+.task-item.task-new{border-color:#fca5a5;background:#fff7f7;animation:taskPulse 1.5s ease 3;}
+@keyframes taskPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.0);}50%{box-shadow:0 0 0 4px rgba(239,68,68,0.15);}}
+.task-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .task-item-name{font-size:14px;font-weight:600;color:#0a2540;}
 .task-item-count{font-size:12px;color:#64748b;margin-top:2px;}
 .task-item-key{font-size:11px;color:#2563eb;margin-top:4px;}
 .task-item-detail{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.5;}
+.task-item-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
+.task-btn{padding:5px 12px;border:none;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:0.18s;}
+.task-btn-start{background:#dbeafe;color:#1d4ed8;}
+.task-btn-start:hover{background:#bfdbfe;}
+.task-btn-stop{background:#fef3c7;color:#d97706;}
+.task-btn-stop:hover{background:#fde68a;}
+.task-btn-done{background:#dcfce7;color:#16a34a;}
+.task-btn-done:hover{background:#bbf7d0;}
+.task-btn-view{background:#f1f5f9;color:#475569;}
+.task-btn-view:hover{background:#e2e8f0;}
+.task-btn-chat{background:#ede9fe;color:#7c3aed;}
+.task-btn-chat:hover{background:#ddd6fe;}
+.task-group-title{font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;
+    text-transform:uppercase;margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid #f1f5f9;}
+.task-badge-wrap{position:relative;display:inline-flex;align-items:center;}
+.task-new-bubble{position:absolute;top:-7px;right:-10px;background:#ef4444;color:#fff;
+    font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;
+    text-align:center;line-height:16px;height:16px;display:none;}
 .task-empty{color:#94a3b8;font-size:13px;text-align:center;padding:20px 0;}
 
 .checkin-btn{
     width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
-    border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;
+    border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;
     transition:0.25s;margin-top:4px;
 }
 .checkin-btn:hover{background:#1d4ed8;box-shadow:0 6px 18px rgba(37,99,235,0.25);transform:translateY(-1px);}
@@ -574,7 +594,10 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
         <div class="tasks-section">
             <div class="tasks-section-title">
                 <span> 今日康复任务</span>
-                <span class="badge badge-gray" id="taskBadge">0项</span>
+                <div class="task-badge-wrap">
+                    <span class="badge badge-gray" id="taskBadge">0项</span>
+                    <span class="task-new-bubble" id="taskNewBubble">0</span>
+                </div>
             </div>
             <div id="taskList"></div>
             <button class="checkin-btn" id="checkinBtn"> 确认完成今日打卡</button>
@@ -740,32 +763,134 @@ function calcStreak() {
 calcStreak();
 
 // ── Tasks (from doctor) ───────────────────────────────────
+let _taskInProgress = null; // 当前正在进行的任务索引
+let _newTaskCount = 0;      // 未读新任务数
+
 function renderTasks() {
     const tasks = p.tasks || [];
-    document.getElementById('taskBadge').textContent = tasks.length + '项';
+    const total = tasks.length;
+    const undone = tasks.filter(t => !t.done);
+    const done   = tasks.filter(t =>  t.done);
+
+    document.getElementById('taskBadge').textContent = total + '项';
+
+    // 气泡
+    const bubble = document.getElementById('taskNewBubble');
+    if (_newTaskCount > 0) {
+        bubble.textContent = _newTaskCount;
+        bubble.style.display = 'block';
+    } else {
+        bubble.style.display = 'none';
+    }
+
     const container = document.getElementById('taskList');
-    if (!tasks.length) {
+    if (!total) {
         container.innerHTML = '<div class="task-empty">医生暂未分配任务</div>';
         updateCheckinBtn(); return;
     }
-    container.innerHTML = tasks.map((t, i) => {
-        const isDoing = i === 0 && !t.done;
-        const cls = t.done ? 'badge-green' : (isDoing ? 'badge-blue' : 'badge-gray');
-        const txt = t.done ? '已完成' : (isDoing ? '进行中' : '待完成');
-        return `<div class="task-item">
-            <div class="task-item-head">
-                <div>
-                    <div class="task-item-name">${t.name}</div>
-                    <div class="task-item-count">${t.count}${t.unit||'次'}</div>
-                    ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
-                    ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
+
+    let html = '';
+
+    // 未完成区
+    if (undone.length) {
+        html += `<div class="task-group-title">未完成 (${undone.length})</div>`;
+        html += undone.map((t, i) => {
+            const realIdx = tasks.indexOf(t);
+            const isActive = _taskInProgress === realIdx;
+            const isNew = i < _newTaskCount;
+            return `<div class="task-item${isNew ? ' task-new' : ''}">
+                <div class="task-item-head">
+                    <div style="flex:1;min-width:0;">
+                        <div class="task-item-name">${t.name}</div>
+                        <div class="task-item-count">${t.count}${t.unit||'次'}</div>
+                        ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
+                        ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
+                    </div>
+                    <span class="badge ${isActive ? 'badge-blue' : 'badge-yellow'}" style="flex-shrink:0;">${isActive ? '进行中' : '待完成'}</span>
                 </div>
-                <span class="badge ${cls}">${txt}</span>
-            </div>
-        </div>`;
-    }).join('');
+                <div class="task-item-actions">
+                    ${!isActive
+                        ? `<button class="task-btn task-btn-start" onclick="startTask(${realIdx})">开始任务</button>`
+                        : `<button class="task-btn task-btn-stop" onclick="stopTask()">停止任务</button>
+                           <button class="task-btn task-btn-done" onclick="finishTask(${realIdx})">结束任务</button>`
+                    }
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // 已完成区
+    if (done.length) {
+        html += `<div class="task-group-title">已完成 (${done.length})</div>`;
+        html += done.map((t) => {
+            const realIdx = tasks.indexOf(t);
+            return `<div class="task-item" style="opacity:0.85;">
+                <div class="task-item-head">
+                    <div style="flex:1;min-width:0;">
+                        <div class="task-item-name">${t.name}</div>
+                        <div class="task-item-count">${t.count}${t.unit||'次'}</div>
+                    </div>
+                    <span class="badge badge-green" style="flex-shrink:0;">已完成</span>
+                </div>
+                <div class="task-item-actions">
+                    <button class="task-btn task-btn-view" onclick="viewTaskResult(${realIdx})">查看完成情况</button>
+                    <button class="task-btn task-btn-chat" onclick="chatAboutTask('${t.name}')">与医生沟通</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    container.innerHTML = html;
     updateCheckinBtn();
 }
+
+function startTask(idx) {
+    _taskInProgress = idx;
+    renderTasks();
+    showToast('任务开始，加油！', 'info');
+}
+function stopTask() {
+    _taskInProgress = null;
+    renderTasks();
+    showToast('已暂停任务', 'info');
+}
+function finishTask(idx) {
+    p.tasks[idx].done = true;
+    _taskInProgress = null;
+    // 同步到服务器
+    const taskName = p.tasks[idx].name;
+    fetch(`/api/tasks/done`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({patientId: p.id, taskName})
+    }).catch(()=>{});
+    saveDB();
+    renderTasks();
+    renderCenterStats();
+    showToast(`"${taskName}" 已完成！`, 'success');
+}
+function viewTaskResult(idx) {
+    const t = p.tasks[idx];
+    // 查找该任务最近的执行记录
+    const rec = (p.records||[]).find(r => r.action === t.name);
+    let detail = `任务：${t.name}\n完成量：${t.count}${t.unit||'次'}`;
+    if (rec) detail += `\n最大角度：${rec.pitch}°\n异常次数：${rec.abnormal}\n状态：${rec.status}`;
+    else detail += '\n暂无传感器记录';
+    showToast(detail, 'success');
+}
+function chatAboutTask(taskName) {
+    // 打开聊天窗口并预填消息
+    if (window._openChat) window._openChat();
+    setTimeout(() => {
+        const inp = document.getElementById('chatInput');
+        if (inp) { inp.value = `关于任务"${taskName}"，我想咨询一下`; inp.focus(); }
+    }, 300);
+}
+window.startTask = startTask;
+window.stopTask = stopTask;
+window.finishTask = finishTask;
+window.viewTaskResult = viewTaskResult;
+window.chatAboutTask = chatAboutTask;
 
 function updateCheckinBtn() {
     const btn = document.getElementById('checkinBtn');
@@ -790,6 +915,15 @@ document.getElementById('checkinBtn').onclick = function() {
 };
 renderTasks();
 
+// 点击任务区域清除新任务气泡
+document.querySelector('.tasks-section').addEventListener('click', function() {
+    if (_newTaskCount > 0) {
+        _newTaskCount = 0;
+        const bubble = document.getElementById('taskNewBubble');
+        if (bubble) bubble.style.display = 'none';
+    }
+});
+
 // ── Center stats ──────────────────────────────────────────
 function renderCenterStats() {
     const doneTotal = p.history.filter(h=>h.done).length;
@@ -804,22 +938,86 @@ function renderCenterStats() {
 renderCenterStats();
 
 // ── 跨标签页同步：医生发布任务后患者端自动刷新 ──────────────
+function handleNewTasks(freshPatient) {
+    const oldCount = p.tasks ? p.tasks.length : 0;
+    p.tasks = freshPatient.tasks;
+    p.records = freshPatient.records;
+    p.history = freshPatient.history;
+    const newCount = p.tasks.length;
+    if (newCount > oldCount) {
+        _newTaskCount = newCount - oldCount;
+        showToast(`收到 ${_newTaskCount} 项新康复任务，请查看！`, 'success');
+    }
+    renderTasks();
+    renderCenterStats();
+    renderCalendar();
+    calcStreak();
+}
+
 window.addEventListener('storage', function(e) {
     if (e.key === DB_KEY) {
         const freshDB = loadDB();
         const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
-        if (freshPatient) {
-            p.tasks = freshPatient.tasks;
-            p.records = freshPatient.records;
-            p.history = freshPatient.history;
-            renderTasks();
-            renderCenterStats();
-            renderCalendar();
-            calcStreak();
-            showToast(' 收到新的康复任务，请查看！', 'success');
-        }
+        if (freshPatient) handleNewTasks(freshPatient);
     }
 });
+
+// SSE 实时监听（服务器推送新任务）
+try {
+    const evtSrc = new EventSource('/api/messages/stream');
+    evtSrc.onmessage = function(e) {
+        try {
+            const data = JSON.parse(e.data);
+            if (data.type === 'new_task' && data.patientId === p.id) {
+                // 从服务器拉取最新任务
+                fetch(`/api/tasks/${p.id}`)
+                    .then(r => r.json())
+                    .then(serverTasks => {
+                        const oldCount = p.tasks ? p.tasks.length : 0;
+                        // 合并服务器任务到本地
+                        serverTasks.forEach(st => {
+                            const local = p.tasks.find(t => t.name === st.name);
+                            if (local) {
+                                local.count = st.count;
+                                local.done = !!st.done;
+                            } else {
+                                p.tasks.push({
+                                    name: st.name, count: st.count,
+                                    unit: st.unit || '次',
+                                    keyPoints: st.key_points || '',
+                                    details: st.details || '',
+                                    done: !!st.done
+                                });
+                            }
+                        });
+                        saveDB();
+                        const added = p.tasks.length - oldCount;
+                        if (added > 0) {
+                            _newTaskCount += added;
+                            showToast(`收到 ${added} 项新康复任务，请查看！`, 'success');
+                        }
+                        renderTasks();
+                        renderCenterStats();
+                    }).catch(()=>{});
+            }
+        } catch(_) {}
+    };
+} catch(_) {}
+
+// ── 轮询保底：每3秒从 localStorage 读取最新任务（演示模式跨标签页同步）──
+let _lastTaskSnapshot = JSON.stringify(p.tasks || []);
+setInterval(function() {
+    try {
+        const freshDB = loadDB();
+        const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
+        if (!freshPatient) return;
+        const snapshot = JSON.stringify(freshPatient.tasks || []);
+        if (snapshot !== _lastTaskSnapshot) {
+            _lastTaskSnapshot = snapshot;
+            handleNewTasks(freshPatient);
+        }
+    } catch(_) {}
+}, 3000);
 
 // ── Overview view ─────────────────────────────────────────
 function renderOverview() {

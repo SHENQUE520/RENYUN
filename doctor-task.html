@@ -226,7 +226,7 @@ function renderPatientSelect() {
     ).join('');
 }
 
-document.getElementById('submitTasksBtn').onclick = function() {
+document.getElementById('submitTasksBtn').onclick = async function() {
     if (!draftTasks.length) { showToast('请先添加至少一个动作', 'error'); return; }
     const pid = document.getElementById('targetPatient').value;
     const p = DB.patients.find(x => x.id === pid);
@@ -246,6 +246,17 @@ document.getElementById('submitTasksBtn').onclick = function() {
     if (p.records.length > 30) p.records.length = 30;
 
     saveDB();
+
+    // 同步到服务器（触发 SSE 广播给患者端）
+    try {
+        await Promise.all(draftTasks.map(dt => fetch(`/api/tasks/${pid}`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({name:dt.name, count:dt.count, unit:dt.unit||'次',
+                key_points:dt.keyPoints||'', details:dt.details||''})
+        })));
+    } catch(e) { /* 离线时靠 localStorage 同步 */ }
+
     showToast(`已向 ${p.name} 发布 ${draftTasks.length} 项任务`, 'success');
     draftTasks = [];
     renderDraftList();
