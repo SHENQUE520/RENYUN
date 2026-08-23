@@ -675,6 +675,49 @@ document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.a
 document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
 document.getElementById('mobileDoctorInfo').innerHTML = `<span class="doc-badge">主治医师</span><span>${p.doctor||'未分配'}</span>`;
 
+// 从服务器同步最新任务（覆盖本地）
+async function syncTasksFromServer(showNotify) {
+    try {
+        const resp = await fetch(`/api/tasks/${p.id}`);
+        if (!resp.ok) return;
+        const serverTasks = await resp.json();
+        if (!serverTasks.length) return;
+        const oldCount = (p.tasks || []).length;
+        // 合并：以服务器为准
+        serverTasks.forEach(st => {
+            const local = (p.tasks || []).find(t => t.name === st.name);
+            if (local) {
+                local.count = st.count;
+                local.unit = st.unit || '次';
+                local.keyPoints = st.key_points || '';
+                local.details = st.details || '';
+                // 只有服务器标记 done=0 时才重置（医生重新发布）
+                if (st.done === 0) local.done = false;
+            } else {
+                if (!p.tasks) p.tasks = [];
+                p.tasks.push({
+                    name: st.name, count: st.count,
+                    unit: st.unit || '次',
+                    keyPoints: st.key_points || '',
+                    details: st.details || '',
+                    done: !!st.done
+                });
+            }
+        });
+        saveDB();
+        const added = (p.tasks || []).length - oldCount;
+        if (showNotify && added > 0) {
+            _newTaskCount += added;
+            showToast(`收到 ${added} 项新康复任务，请查看！`, 'success');
+        }
+        renderTasks();
+        renderCenterStats();
+    } catch(e) { /* 服务器未启动时静默 */ }
+}
+
+// 页面加载时立即同步一次
+syncTasksFromServer(false);
+
 // ── View switching ────────────────────────────────────────
 function switchView(id, btn) {
     document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
@@ -969,54 +1012,15 @@ try {
         try {
             const data = JSON.parse(e.data);
             if (data.type === 'new_task' && data.patientId === p.id) {
-                // 从服务器拉取最新任务
-                fetch(`/api/tasks/${p.id}`)
-                    .then(r => r.json())
-                    .then(serverTasks => {
-                        const oldCount = p.tasks ? p.tasks.length : 0;
-                        // 合并服务器任务到本地
-                        serverTasks.forEach(st => {
-                            const local = p.tasks.find(t => t.name === st.name);
-                            if (local) {
-                                local.count = st.count;
-                                local.done = !!st.done;
-                            } else {
-                                p.tasks.push({
-                                    name: st.name, count: st.count,
-                                    unit: st.unit || '次',
-                                    keyPoints: st.key_points || '',
-                                    details: st.details || '',
-                                    done: !!st.done
-                                });
-                            }
-                        });
-                        saveDB();
-                        const added = p.tasks.length - oldCount;
-                        if (added > 0) {
-                            _newTaskCount += added;
-                            showToast(`收到 ${added} 项新康复任务，请查看！`, 'success');
-                        }
-                        renderTasks();
-                        renderCenterStats();
-                    }).catch(()=>{});
+                syncTasksFromServer(true);
             }
         } catch(_) {}
     };
 } catch(_) {}
 
-// ── 轮询保底：每3秒从 localStorage 读取最新任务（演示模式跨标签页同步）──
-let _lastTaskSnapshot = JSON.stringify(p.tasks || []);
+// ── 轮询保底：每3秒从服务器拉取最新任务 ──
 setInterval(function() {
-    try {
-        const freshDB = loadDB();
-        const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
-        if (!freshPatient) return;
-        const snapshot = JSON.stringify(freshPatient.tasks || []);
-        if (snapshot !== _lastTaskSnapshot) {
-            _lastTaskSnapshot = snapshot;
-            handleNewTasks(freshPatient);
-        }
-    } catch(_) {}
+    syncTasksFromServer(true);
 }, 3000);
 
 // ── Overview view ─────────────────────────────────────────
