@@ -3,4 +3,7 @@ node_modules/
 rehab.db
 rehab.db-shm
 rehab.db-wal
-node_modules/
+.claude/
+.idea/
+.vscode/
+.github/
