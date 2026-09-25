@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>韧云智护 · 康复中心</title>
 <link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="css/patient-agent.css"/>
 <script src="https://cdn.jsdelivr.net/npm/mqtt@5.0.0/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -166,39 +167,19 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 .tasks-section{}
 .tasks-section-title{font-size:13px;font-weight:600;color:#0a2540;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .task-item{
-    padding:11px 14px;border-radius:6px;background:#f8fbff;
+    padding:11px 14px;border-radius:12px;background:#f8fbff;
     border:1px solid #eef2f6;margin-bottom:8px;
 }
-.task-item.task-new{border-color:#fca5a5;background:#fff7f7;animation:taskPulse 1.5s ease 3;}
-@keyframes taskPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.0);}50%{box-shadow:0 0 0 4px rgba(239,68,68,0.15);}}
-.task-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.task-item-head{display:flex;align-items:center;justify-content:space-between;}
 .task-item-name{font-size:14px;font-weight:600;color:#0a2540;}
 .task-item-count{font-size:12px;color:#64748b;margin-top:2px;}
 .task-item-key{font-size:11px;color:#2563eb;margin-top:4px;}
 .task-item-detail{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.5;}
-.task-item-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
-.task-btn{padding:5px 12px;border:none;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:0.18s;}
-.task-btn-start{background:#dbeafe;color:#1d4ed8;}
-.task-btn-start:hover{background:#bfdbfe;}
-.task-btn-stop{background:#fef3c7;color:#d97706;}
-.task-btn-stop:hover{background:#fde68a;}
-.task-btn-done{background:#dcfce7;color:#16a34a;}
-.task-btn-done:hover{background:#bbf7d0;}
-.task-btn-view{background:#f1f5f9;color:#475569;}
-.task-btn-view:hover{background:#e2e8f0;}
-.task-btn-chat{background:#ede9fe;color:#7c3aed;}
-.task-btn-chat:hover{background:#ddd6fe;}
-.task-group-title{font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;
-    text-transform:uppercase;margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid #f1f5f9;}
-.task-badge-wrap{position:relative;display:inline-flex;align-items:center;}
-.task-new-bubble{position:absolute;top:-7px;right:-10px;background:#ef4444;color:#fff;
-    font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;
-    text-align:center;line-height:16px;height:16px;display:none;}
 .task-empty{color:#94a3b8;font-size:13px;text-align:center;padding:20px 0;}
 
 .checkin-btn{
     width:100%;padding:13px;background:#2563eb;color:#fff;border:none;
-    border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;
+    border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;
     transition:0.25s;margin-top:4px;
 }
 .checkin-btn:hover{background:#1d4ed8;box-shadow:0 6px 18px rgba(37,99,235,0.25);transform:translateY(-1px);}
@@ -263,7 +244,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     .mobile-doctor-info{display:flex;}
 }
 
-/* AI 报告弹窗 */
+/* 康复报告弹窗 */
 .ai-modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
     align-items:center;justify-content:center;z-index:1500;padding:20px;
@@ -300,7 +281,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     .report-chart-grid{grid-template-columns:1fr;}
 }
 .ai-modal-progress .bar{
-    height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);
+    height:100%;width:0%;background:#2563eb;
     animation:progressAnim 8s ease-out forwards;
 }
 @keyframes progressAnim{0%{width:0%}100%{width:95%}}
@@ -374,20 +355,21 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     box-shadow:0 2px 8px rgba(0,0,0,0.03);
 }
 </style>
+<link rel="stylesheet" href="css/medical-portal.css"/>
 </head>
-<body>
+<body class="patient-page">
 <div id="toast" class="toast"></div>
 
 <header class="app-header">
     <div class="left">
-        <a class="brand" href="patient.html"> 韧云智护<small>· 患者端</small></a>
+        <a class="brand" href="patient.html"><b class="brand-mark">韧</b> 韧云智护<small>患者端</small></a>
     </div>
     <div class="right">
         <a class="user-info" href="profile.html">
             <div class="avatar" id="headerAvatar">张</div>
             <div class="detail">
                 <div class="name" id="headerName">张明</div>
-                <div class="role-tag"> 使用者</div>
+                <div class="role-tag">康复患者</div>
             </div>
         </a>
         <button class="nav-btn" onclick="logout()">退出</button>
@@ -407,31 +389,34 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
     <nav class="sidebar-nav">
         <div class="nav-group-label">主要功能</div>
         <button class="nav-item active" data-view="monitor" onclick="switchView('monitor',this)">
-            <span class="nav-icon"></span>动作监测
+            <span class="nav-icon">📈</span>动作监测
         </button>
         <button class="nav-item" data-view="overview" onclick="switchView('overview',this)">
-            <span class="nav-icon"></span>康复概览
+            <span class="nav-icon">🏠</span>康复概览
+        </button>
+        <button class="nav-item" data-view="agent" onclick="openPatientAgent(this)">
+            <span class="nav-icon">❓</span>训练答疑
         </button>
         <button class="nav-item" onclick="generatePatientReport()">
-            <span class="nav-icon"></span>生成报告
+            <span class="nav-icon">📄</span>康复报告
         </button>
         <button class="nav-item" data-view="chat" onclick="openChatFromNav()">
-            <span class="nav-icon"></span>与医生沟通
+            <span class="nav-icon">💬</span>与医生沟通
         </button>
         <button class="nav-item" data-view="demo" onclick="switchView('demo',this)">
-            <span class="nav-icon"></span>动作演示
+            <span class="nav-icon">🎬</span>动作演示
         </button>
         <div class="nav-group-label">管理</div>
         <button class="nav-item" data-view="records" onclick="switchView('records',this)">
-            <span class="nav-icon"></span>执行记录
+            <span class="nav-icon">📊</span>执行记录
         </button>
         <button class="nav-item" onclick="location.href='profile.html'">
-            <span class="nav-icon"></span>个人信息
+            <span class="nav-icon">👤</span>个人信息
         </button>
     </nav>
     <div class="sidebar-footer">
         <button class="nav-item" style="color:#ef4444;" onclick="logout()">
-            <span class="nav-icon"></span>退出登录
+            <span class="nav-icon">🚪</span>退出登录
         </button>
     </div>
 </aside>
@@ -483,7 +468,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
             <!-- Real-time chart -->
             <div class="mqtt-chart-panel">
-                <h3 style="font-size:14px;margin-bottom:12px;color:#0a2540;"> 实时关节姿态动态曲线</h3>
+                <h3 style="font-size:14px;margin-bottom:12px;color:#0a2540;">实时关节姿态动态曲线</h3>
                 <div style="height:220px;position:relative;">
                     <canvas id="mqttPatientChart"></canvas>
                 </div>
@@ -494,15 +479,67 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- View: Overview -->
         <div class="view-panel" id="view-overview">
-            <div class="section-heading"> 康复概览</div>
+            <div class="section-heading">康复概览</div>
             <div class="center-stats" id="overviewStats"></div>
-            <div class="section-heading" style="margin-top:20px;"> 近期记录</div>
+            <div class="section-heading" style="margin-top:20px;">近期记录</div>
             <div class="record-mini" id="recentRecords"></div>
+        </div>
+
+        <!-- View: Training guidance -->
+        <div class="view-panel" id="view-agent">
+            <section class="agent-shell" aria-label="训练数据解读与答疑">
+                <header class="agent-hero">
+                    <div class="agent-identity">
+                        <div class="agent-mark" aria-hidden="true">问</div>
+                        <div>
+                            <div class="agent-eyebrow">训练记录辅助说明</div>
+                            <h2>训练答疑</h2>
+                            <p>根据训练记录和医生任务，帮你查看数据、整理疑问。</p>
+                        </div>
+                    </div>
+                    <div class="agent-status"><span></span>训练信息已同步</div>
+                </header>
+
+                <div class="agent-context-strip" id="agentContextStrip"></div>
+
+                <div class="agent-layout">
+                    <div class="agent-conversation">
+                        <div class="agent-messages" id="agentMessages" aria-live="polite"></div>
+                        <div class="agent-composer">
+                            <textarea id="agentQuestion" rows="1" maxlength="500"
+                                placeholder="输入你想了解的训练问题"
+                                aria-label="输入训练问题"></textarea>
+                            <button id="agentSendBtn" type="button" onclick="sendPatientAgentMessage()" aria-label="发送问题">发送</button>
+                        </div>
+                        <div class="agent-safety-note">内容仅用于训练记录说明，不替代医生诊断或处方。如有不适，请停止训练并联系医生。</div>
+                    </div>
+
+                    <aside class="agent-suggestions">
+                        <div class="agent-side-title">你可以这样问</div>
+                        <button type="button" onclick="askPatientAgent('解读我最近一次训练的表现')">
+                            <span>01</span><div><strong>本次训练</strong><small>解读动作与异常记录</small></div>
+                        </button>
+                        <button type="button" onclick="askPatientAgent('总结我最近7天的训练情况')">
+                            <span>02</span><div><strong>近期趋势</strong><small>整理训练与打卡情况</small></div>
+                        </button>
+                        <button type="button" onclick="askPatientAgent('为什么我的训练中会出现需要调整的提示？')">
+                            <span>03</span><div><strong>提示解释</strong><small>说明指标和动作含义</small></div>
+                        </button>
+                        <button type="button" onclick="askPatientAgent('今天训练时需要注意什么？')">
+                            <span>04</span><div><strong>今日注意</strong><small>依据医生任务进行提醒</small></div>
+                        </button>
+                        <div class="agent-boundary">
+                            <strong>使用说明</strong>
+                            <p>此功能不会修改医生处方，也不会控制支具锁止或释放。</p>
+                        </div>
+                    </aside>
+                </div>
+            </section>
         </div>
 
         <!-- View: Records -->
         <div class="view-panel" id="view-records">
-            <div class="section-heading"> 动作执行记录</div>
+            <div class="section-heading">动作执行记录</div>
             <div style="background:#fff;border-radius:14px;border:1px solid #e9f0fa;overflow:auto;">
                 <table class="record-table" id="fullRecordTable">
                     <thead><tr>
@@ -515,7 +552,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- View: Demo (动作演示) -->
         <div class="view-panel" id="view-demo">
-            <div class="section-heading"> 动作演示</div>
+            <div class="section-heading">动作演示</div>
             <p style="font-size:13px;color:#64748b;margin-bottom:16px;">观看标准动作视频，配合训练进行正确的康复练习。</p>
             <div class="demo-grid">
                 <div class="demo-card">
@@ -576,7 +613,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 
         <!-- Calendar -->
         <div class="cal-section">
-            <div class="cal-section-title"> 康复打卡日历</div>
+            <div class="cal-section-title">康复打卡日历</div>
             <div class="cal-nav">
                 <button id="calPrev">&#8249;</button>
                 <span class="cal-month" id="calTitle"></span>
@@ -593,14 +630,11 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
         <!-- Tasks -->
         <div class="tasks-section">
             <div class="tasks-section-title">
-                <span> 今日康复任务</span>
-                <div class="task-badge-wrap">
-                    <span class="badge badge-gray" id="taskBadge">0项</span>
-                    <span class="task-new-bubble" id="taskNewBubble">0</span>
-                </div>
+                <span>今日康复任务</span>
+                <span class="badge badge-gray" id="taskBadge">0项</span>
             </div>
             <div id="taskList"></div>
-            <button class="checkin-btn" id="checkinBtn"> 确认完成今日打卡</button>
+            <button class="checkin-btn" id="checkinBtn">确认完成今日打卡</button>
         </div>
 
     </div>
@@ -611,51 +645,38 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:
 <!-- ══ MOBILE BOTTOM NAV ══ -->
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
     <button class="mob-nav-btn active" onclick="mobNav('monitor',this)">
-        <span class="mob-icon"></span>监测
+        <span class="mob-icon">测</span>监测
     </button>
     <button class="mob-nav-btn" onclick="mobNav('overview',this)">
-        <span class="mob-icon"></span>概览
+        <span class="mob-icon">览</span>概览
     </button>
     <button class="mob-nav-btn" onclick="openChatFromNav()">
-        <span class="mob-icon"></span>沟通
+        <span class="mob-icon">讯</span>沟通
     </button>
     <button class="mob-nav-btn" onclick="mobNav('records',this)">
-        <span class="mob-icon"></span>记录
+        <span class="mob-icon">录</span>记录
     </button>
-    <button class="mob-nav-btn" onclick="generatePatientReport()">
-        <span class="mob-icon"></span>报告
+    <button class="mob-nav-btn" onclick="mobNav('agent',this)">
+        <span class="mob-icon">问</span>答疑
     </button>
 </nav>
 
-<!-- 任务弹窗 -->
-<div class="ai-modal-overlay" id="taskModal" onclick="if(event.target===this)closeTaskModal()">
-    <div class="ai-modal-box" onclick="event.stopPropagation()" style="max-width:520px;">
-        <div class="ai-modal-header">
-            <h3> 今日康复任务</h3>
-            <button class="ai-modal-close" onclick="closeTaskModal()">&times;</button>
-        </div>
-        <div class="ai-modal-scroll" style="max-height:70vh;overflow-y:auto;padding:0 22px 22px;">
-            <div id="taskModalBody"></div>
-        </div>
-    </div>
-</div>
-
-<!-- AI 报告弹窗 -->
+<!-- 康复报告弹窗 -->
 <div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
     <div class="ai-modal-box" onclick="event.stopPropagation()">
         <div class="ai-modal-header">
-            <h3> AI 康复评估报告</h3>
+            <h3>康复训练评估报告</h3>
             <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
         </div>
         <div class="ai-modal-progress" id="aiProgress" style="display:none;"><div class="bar"></div></div>
         <div class="ai-modal-scroll">
             <div class="ai-modal-body" id="aiModalBody">
-                正在生成报告...
+                正在整理训练数据...
             </div>
-            <!--  图表区域 -->
+            <!-- 📊 图表区域 -->
             <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
                 <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
-                    <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
+                    <span style="font-size:11px;font-weight:600;color:#0a2540;">数据概览</span>
                 </div>
                 <div class="report-chart-grid">
                     <div class="report-chart-card">
@@ -687,49 +708,6 @@ document.getElementById('sideUname').textContent = p.name;
 document.getElementById('sideMeta').textContent = (p.gender||'') + ' · ' + (p.age||'')+'岁';
 document.getElementById('sideDoctor').textContent = '主治：' + (p.doctor||'');
 document.getElementById('mobileDoctorInfo').innerHTML = `<span class="doc-badge">主治医师</span><span>${p.doctor||'未分配'}</span>`;
-
-// 从服务器同步最新任务（覆盖本地）
-async function syncTasksFromServer(showNotify) {
-    try {
-        const resp = await fetch(`/api/tasks/${p.id}`);
-        if (!resp.ok) return;
-        const serverTasks = await resp.json();
-        if (!serverTasks.length) return;
-        const oldCount = (p.tasks || []).length;
-        // 合并：以服务器为准
-        serverTasks.forEach(st => {
-            const local = (p.tasks || []).find(t => t.name === st.name);
-            if (local) {
-                local.count = st.count;
-                local.unit = st.unit || '次';
-                local.keyPoints = st.key_points || '';
-                local.details = st.details || '';
-                // 只有服务器标记 done=0 时才重置（医生重新发布）
-                if (st.done === 0) local.done = false;
-            } else {
-                if (!p.tasks) p.tasks = [];
-                p.tasks.push({
-                    name: st.name, count: st.count,
-                    unit: st.unit || '次',
-                    keyPoints: st.key_points || '',
-                    details: st.details || '',
-                    done: !!st.done
-                });
-            }
-        });
-        saveDB();
-        const added = (p.tasks || []).length - oldCount;
-        if (showNotify && added > 0) {
-            _newTaskCount += added;
-            showToast(`收到 ${added} 项新康复任务，请查看！`, 'success');
-        }
-        renderTasks();
-        renderCenterStats();
-    } catch(e) { /* 服务器未启动时静默 */ }
-}
-
-// 页面加载时立即同步一次
-syncTasksFromServer(false);
 
 // ── View switching ────────────────────────────────────────
 function switchView(id, btn) {
@@ -819,143 +797,41 @@ function calcStreak() {
 calcStreak();
 
 // ── Tasks (from doctor) ───────────────────────────────────
-let _taskInProgress = null; // 当前正在进行的任务索引
-let _newTaskCount = 0;      // 未读新任务数
-
 function renderTasks() {
     const tasks = p.tasks || [];
-    const total = tasks.length;
-    const undone = tasks.filter(t => !t.done);
-    const done   = tasks.filter(t =>  t.done);
-
-    document.getElementById('taskBadge').textContent = total + '项';
-
-    // 气泡
-    const bubble = document.getElementById('taskNewBubble');
-    if (_newTaskCount > 0) {
-        bubble.textContent = _newTaskCount;
-        bubble.style.display = 'block';
-    } else {
-        bubble.style.display = 'none';
-    }
-
+    document.getElementById('taskBadge').textContent = tasks.length + '项';
     const container = document.getElementById('taskList');
-    if (!total) {
+    if (!tasks.length) {
         container.innerHTML = '<div class="task-empty">医生暂未分配任务</div>';
         updateCheckinBtn(); return;
     }
-
-    let html = '';
-
-    // 未完成区
-    if (undone.length) {
-        html += `<div class="task-group-title">未完成 (${undone.length})</div>`;
-        html += undone.map((t, i) => {
-            const realIdx = tasks.indexOf(t);
-            const isActive = _taskInProgress === realIdx;
-            const isNew = i < _newTaskCount;
-            return `<div class="task-item${isNew ? ' task-new' : ''}">
-                <div class="task-item-head">
-                    <div style="flex:1;min-width:0;">
-                        <div class="task-item-name">${t.name}</div>
-                        <div class="task-item-count">${t.count}${t.unit||'次'}</div>
-                        ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
-                        ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
-                    </div>
-                    <span class="badge ${isActive ? 'badge-blue' : 'badge-yellow'}" style="flex-shrink:0;">${isActive ? '进行中' : '待完成'}</span>
+    container.innerHTML = tasks.map((t, i) => {
+        const isDoing = i === 0 && !t.done;
+        const cls = t.done ? 'badge-green' : (isDoing ? 'badge-blue' : 'badge-gray');
+        const txt = t.done ? '已完成' : (isDoing ? '进行中' : '待完成');
+        return `<div class="task-item">
+            <div class="task-item-head">
+                <div>
+                    <div class="task-item-name">${t.name}</div>
+                    <div class="task-item-count">${t.count}${t.unit||'次'}</div>
+                    ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
+                    ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
                 </div>
-                <div class="task-item-actions">
-                    ${!isActive
-                        ? `<button class="task-btn task-btn-start" onclick="startTask(${realIdx})">开始任务</button>`
-                        : `<button class="task-btn task-btn-stop" onclick="stopTask()">停止任务</button>
-                           <button class="task-btn task-btn-done" onclick="finishTask(${realIdx})">结束任务</button>`
-                    }
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    // 已完成区
-    if (done.length) {
-        html += `<div class="task-group-title">已完成 (${done.length})</div>`;
-        html += done.map((t) => {
-            const realIdx = tasks.indexOf(t);
-            return `<div class="task-item" style="opacity:0.85;">
-                <div class="task-item-head">
-                    <div style="flex:1;min-width:0;">
-                        <div class="task-item-name">${t.name}</div>
-                        <div class="task-item-count">${t.count}${t.unit||'次'}</div>
-                    </div>
-                    <span class="badge badge-green" style="flex-shrink:0;">已完成</span>
-                </div>
-                <div class="task-item-actions">
-                    <button class="task-btn task-btn-view" onclick="viewTaskResult(${realIdx})">查看完成情况</button>
-                    <button class="task-btn task-btn-chat" onclick="chatAboutTask('${t.name}')">与医生沟通</button>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    container.innerHTML = html;
+                <span class="badge ${cls}">${txt}</span>
+            </div>
+        </div>`;
+    }).join('');
     updateCheckinBtn();
 }
-
-function startTask(idx) {
-    _taskInProgress = idx;
-    renderTasks();
-    showToast('任务开始，加油！', 'info');
-}
-function stopTask() {
-    _taskInProgress = null;
-    renderTasks();
-    showToast('已暂停任务', 'info');
-}
-function finishTask(idx) {
-    p.tasks[idx].done = true;
-    _taskInProgress = null;
-    // 同步到服务器
-    const taskName = p.tasks[idx].name;
-    fetch(`/api/tasks/done`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({patientId: p.id, taskName})
-    }).catch(()=>{});
-    saveDB();
-    renderTasks();
-    renderCenterStats();
-    showToast(`"${taskName}" 已完成！`, 'success');
-}
-function viewTaskResult(idx) {
-    const t = p.tasks[idx];
-    // 查找该任务最近的执行记录
-    const rec = (p.records||[]).find(r => r.action === t.name);
-    let detail = `任务：${t.name}\n完成量：${t.count}${t.unit||'次'}`;
-    if (rec) detail += `\n最大角度：${rec.pitch}°\n异常次数：${rec.abnormal}\n状态：${rec.status}`;
-    else detail += '\n暂无传感器记录';
-    showToast(detail, 'success');
-}
-function chatAboutTask(taskName) {
-    // 打开聊天窗口并预填消息
-    if (window._openChat) window._openChat();
-    setTimeout(() => {
-        const inp = document.getElementById('chatInput');
-        if (inp) { inp.value = `关于任务"${taskName}"，我想咨询一下`; inp.focus(); }
-    }, 300);
-}
-window.startTask = startTask;
-window.stopTask = stopTask;
-window.finishTask = finishTask;
-window.viewTaskResult = viewTaskResult;
-window.chatAboutTask = chatAboutTask;
 
 function updateCheckinBtn() {
     const btn = document.getElementById('checkinBtn');
     const todayRec = p.history.find(h => h.date === getTodayStr());
     if (todayRec && todayRec.done) {
-        btn.textContent=' 今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
+        btn.textContent='今日已打卡'; btn.className='checkin-btn done-btn'; btn.disabled=true; return;
     }
     const allDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
-    btn.textContent = allDone ? ' 确认完成今日打卡' : ' 请先完成所有任务';
+    btn.textContent = allDone ? '确认完成今日打卡' : '请先完成所有任务';
     btn.className = 'checkin-btn'; btn.disabled = !allDone;
 }
 
@@ -967,175 +843,40 @@ document.getElementById('checkinBtn').onclick = function() {
     p.tasks.forEach(t => t.done = false);
     saveDB();
     renderTasks(); renderCalendar(); calcStreak();
-    showToast(' 打卡成功！今日康复训练已完成。','success');
+    showToast('🎉 打卡成功！今日康复训练已完成。','success');
 };
 renderTasks();
-
-// 点击任务区域清除新任务气泡
-document.querySelector('.tasks-section').addEventListener('click', function() {
-    if (_newTaskCount > 0) {
-        _newTaskCount = 0;
-        const bubble = document.getElementById('taskNewBubble');
-        if (bubble) bubble.style.display = 'none';
-    }
-});
 
 // ── Center stats ──────────────────────────────────────────
 function renderCenterStats() {
     const doneTotal = p.history.filter(h=>h.done).length;
     const today = getTodayStr();
     const todayDone = p.history.some(h=>h.date===today&&h.done);
-    const doneTasks = (p.tasks||[]).filter(t=>t.done).length;
-    const totalTasks = (p.tasks||[]).length;
     const html = `
-        <div class="cstat"><div class="cicon">${todayDone?'':''}</div><div class="cnum" style="font-size:16px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div>
-        <div class="cstat" onclick="openTaskModal()" style="cursor:pointer;" title="点击查看任务详情"><div class="cicon"></div><div class="cnum">${doneTasks}/${totalTasks}</div><div class="clbl">今日任务项</div></div>
-        <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
+        <div class="cstat"><div class="cicon">${todayDone?'✅':'⏳'}</div><div class="cnum" style="font-size:16px;">${todayDone?'已完成':'待完成'}</div><div class="clbl">今日打卡</div></div>
+        <div class="cstat"><div class="cicon">📋</div><div class="cnum">${p.tasks.length}</div><div class="clbl">今日任务项</div></div>
+        <div class="cstat"><div class="cicon">📅</div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡天</div></div>`;
     document.getElementById('centerStats').innerHTML = html;
 }
 renderCenterStats();
 
-// ── 任务弹窗 ──────────────────────────────────────────────
-function openTaskModal() {
-    renderTaskModal();
-    document.getElementById('taskModal').style.display = 'flex';
-}
-function closeTaskModal() {
-    document.getElementById('taskModal').style.display = 'none';
-}
-function renderTaskModal() {
-    const tasks = p.tasks || [];
-    const undone = tasks.filter(t => !t.done);
-    const done   = tasks.filter(t =>  t.done);
-    let html = '';
-    if (!tasks.length) {
-        html = '<div style="color:#94a3b8;text-align:center;padding:32px 0;">医生暂未分配任务</div>';
-    } else {
-        if (undone.length) {
-            html += `<div class="task-group-title" style="margin-top:16px;">未完成 (${undone.length})</div>`;
-            html += undone.map(t => {
-                const realIdx = tasks.indexOf(t);
-                const isActive = _taskInProgress === realIdx;
-                return `<div class="task-item">
-                    <div class="task-item-head">
-                        <div style="flex:1;min-width:0;">
-                            <div class="task-item-name">${t.name}</div>
-                            <div class="task-item-count">${t.count}${t.unit||'次'}</div>
-                            ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
-                            ${t.details?`<div class="task-item-detail">${t.details}</div>`:''}
-                        </div>
-                        <span class="badge ${isActive?'badge-blue':'badge-yellow'}" style="flex-shrink:0;">${isActive?'进行中':'待完成'}</span>
-                    </div>
-                    <div class="task-item-actions">
-                        ${!isActive
-                            ? `<button class="task-btn task-btn-start" onclick="startTaskModal(${realIdx})">开始任务</button>`
-                            : `<button class="task-btn task-btn-stop" onclick="stopTaskModal()">停止任务</button>
-                               <button class="task-btn task-btn-done" onclick="finishTaskModal(${realIdx})">结束任务</button>`
-                        }
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        if (done.length) {
-            html += `<div class="task-group-title" style="margin-top:16px;">已完成 (${done.length})</div>`;
-            html += done.map(t => {
-                const realIdx = tasks.indexOf(t);
-                return `<div class="task-item" style="opacity:0.9;">
-                    <div class="task-item-head">
-                        <div style="flex:1;min-width:0;">
-                            <div class="task-item-name">${t.name}</div>
-                            <div class="task-item-count">${t.count}${t.unit||'次'}</div>
-                            ${t.keyPoints?`<div class="task-item-key">要点：${t.keyPoints}</div>`:''}
-                        </div>
-                        <span class="badge badge-green" style="flex-shrink:0;">已完成</span>
-                    </div>
-                    <div class="task-item-actions">
-                        <button class="task-btn task-btn-view" onclick="viewTaskResult(${realIdx})">查看完成情况</button>
-                        <button class="task-btn task-btn-chat" onclick="chatAboutTask('${t.name}')">与医生沟通</button>
-                        <button class="task-btn task-btn-start" onclick="retryTaskModal(${realIdx})" style="background:#f0fdf4;color:#16a34a;">再次训练</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-    }
-    document.getElementById('taskModalBody').innerHTML = html;
-}
-function startTaskModal(idx) {
-    _taskInProgress = idx;
-    renderTaskModal(); renderTasks(); renderCenterStats();
-    showToast('任务开始，加油！', 'info');
-}
-function stopTaskModal() {
-    _taskInProgress = null;
-    renderTaskModal(); renderTasks(); renderCenterStats();
-    showToast('已暂停任务', 'info');
-}
-function finishTaskModal(idx) {
-    const tasks = p.tasks || [];
-    const task = tasks[idx];
-    if (!task) return;
-    task.done = true;
-    _taskInProgress = null;
-    const taskName = task.name;
-    const now = new Date();
-    const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
-    p.records.unshift({time:ts, action:taskName, pitch:Math.round(35+Math.random()*30), abnormal:0, status:'标准'});
-    fetch(`/api/tasks/${task.id||idx}`, {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({done:1})}).catch(()=>{});
-    saveDB();
-    renderTaskModal(); renderTasks(); renderCenterStats();
-    showToast(`"${taskName}" 已完成！`, 'success');
-}
-function retryTaskModal(idx) {
-    const task = (p.tasks||[])[idx];
-    if (!task) return;
-    task.done = false;
-    saveDB();
-    renderTaskModal(); renderTasks(); renderCenterStats();
-    showToast(`"${task.name}" 已重置，可重新开始训练`, 'info');
-}
-
 // ── 跨标签页同步：医生发布任务后患者端自动刷新 ──────────────
-function handleNewTasks(freshPatient) {
-    const oldCount = p.tasks ? p.tasks.length : 0;
-    p.tasks = freshPatient.tasks;
-    p.records = freshPatient.records;
-    p.history = freshPatient.history;
-    const newCount = p.tasks.length;
-    if (newCount > oldCount) {
-        _newTaskCount = newCount - oldCount;
-        showToast(`收到 ${_newTaskCount} 项新康复任务，请查看！`, 'success');
-    }
-    renderTasks();
-    renderCenterStats();
-    renderCalendar();
-    calcStreak();
-}
-
 window.addEventListener('storage', function(e) {
     if (e.key === DB_KEY) {
         const freshDB = loadDB();
         const freshPatient = freshDB.patients.find(x => x.id === DB.currentPatientId);
-        if (freshPatient) handleNewTasks(freshPatient);
+        if (freshPatient) {
+            p.tasks = freshPatient.tasks;
+            p.records = freshPatient.records;
+            p.history = freshPatient.history;
+            renderTasks();
+            renderCenterStats();
+            renderCalendar();
+            calcStreak();
+            showToast('收到新的康复任务，请查看！', 'success');
+        }
     }
 });
-
-// SSE 实时监听（服务器推送新任务）
-try {
-    const evtSrc = new EventSource('/api/messages/stream');
-    evtSrc.onmessage = function(e) {
-        try {
-            const data = JSON.parse(e.data);
-            if (data.type === 'new_task' && data.patientId === p.id) {
-                syncTasksFromServer(true);
-            }
-        } catch(_) {}
-    };
-} catch(_) {}
-
-// ── 轮询保底：每3秒从服务器拉取最新任务 ──
-setInterval(function() {
-    syncTasksFromServer(true);
-}, 3000);
 
 // ── Overview view ─────────────────────────────────────────
 function renderOverview() {
@@ -1143,9 +884,9 @@ function renderOverview() {
     const today = getTodayStr();
     const todayDone = p.history.some(h=>h.date===today&&h.done);
     document.getElementById('overviewStats').innerHTML = `
-        <div class="cstat"><div class="cicon"></div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div>
-        <div class="cstat"><div class="cicon"></div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div>
-        <div class="cstat"><div class="cicon"></div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div>`;
+        <div class="cstat"><div class="cicon">📅</div><div class="cnum">${doneTotal}</div><div class="clbl">累计打卡</div></div>
+        <div class="cstat"><div class="cicon">🔥</div><div class="cnum" id="ov-streak">${document.getElementById('streakNum').textContent}</div><div class="clbl">连续打卡</div></div>
+        <div class="cstat"><div class="cicon">📋</div><div class="cnum">${p.tasks.filter(t=>t.done).length}/${p.tasks.length}</div><div class="clbl">任务完成</div></div>`;
     const recentEl = document.getElementById('recentRecords');
     const recs = (p.records||[]).slice(0,6);
     if (!recs.length) { recentEl.innerHTML='<div class="task-empty" style="padding:20px;">暂无执行记录</div>'; return; }
@@ -1332,7 +1073,7 @@ async function generatePatientReport() {
     const progress = document.getElementById('aiProgress');
 
     modal.classList.add('open');
-    body.textContent = '正在连接AI服务...';
+    body.textContent = '正在整理训练记录...';
     chartArea.style.display = 'none';
     progress.style.display = 'block';
     progress.innerHTML = '<div class="bar"></div>';
@@ -1340,53 +1081,15 @@ async function generatePatientReport() {
     const streakDays = parseInt(document.getElementById('streakNum').textContent) || 0;
     const totalCheckins = p.history.filter(h => h.done).length;
 
-    const recordSummary = (p.records || []).slice(0, 10).map(r =>
-        `${r.time} ${r.action} ${r.pitch}° 异常${r.abnormal}次 ${r.status}`
+    const recordSummary = (p.records || []).slice(0, 5).map(r =>
+        `${r.action}${r.pitch}°${r.status}`
     ).join('；') || '暂无';
 
     const taskSummary = (p.tasks || []).map(t =>
-        `${t.name}×${t.count}${t.unit}${t.done ? '(已完成)' : '(未完成)'}`
+        `${t.name}×${t.count}`
     ).join('；') || '暂无';
 
-    const historySummary = (p.history || []).slice(-7).map(h =>
-        `${h.date}${h.done ? '✓' : '✗'}`
-    ).join(' ') || '暂无';
-
-    const allTasksDone = p.tasks.length > 0 && p.tasks.every(t => t.done);
-    const doneTaskCount = p.tasks.filter(t => t.done).length;
-
-    const totalRec = p.records.length || 1;
-    const standardCount = (p.records || []).filter(r => r.status === '标准').length;
-    const avgPitch = (p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec).toFixed(1);
-    const last7Rates = (p.records || []).slice(0, 7).map(r => {
-        const pitch = parseFloat(r.pitch) || 0;
-        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
-    });
-    const standardRatio = Math.min(100, Math.round((standardCount / totalRec) * 100));
-    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
-    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
-    const strength = Math.min(100, Math.round((p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec / 40) * 100));
-    const taskProgress = Math.min(100, Math.round((doneTaskCount / Math.max(1, p.tasks.length)) * 100));
-
-    const prompt = `我是患者${p.name}，${p.age}岁${p.gender||''}，${p.notes||p.status||'康复中'}。
-
-【我的训练记录明细】（共${totalRec}条，标准动作${standardCount}条，平均角度${avgPitch}°）
-${recordSummary}
-
-【正确率趋势数据】（近7次，对应图表"正确率趋势"）：${last7Rates.join('% , ')}%
-
-【康复雷达五维度评分】（对应图表"康复雷达"，满分100）
-动作质量${standardRatio}分 / 稳定性${stability}分 / 依从性${compliance}分 / 力量${strength}分 / 任务完成${taskProgress}分
-
-【今日任务】${taskSummary}（今日共${p.tasks.length}项任务，已完成${doneTaskCount}项，${allTasksDone ? '已全部完成' : '尚未全部完成'}）
-
-【打卡统计】累计打卡${totalCheckins}天，连续打卡${streakDays}天，近7天：${historySummary}
-
-请结合以上训练记录、正确率趋势和康复雷达五维度评分，给我生成一份详细的康复报告（5个小标题：我的概况/训练表现分析/康复各维度评分解读/依从性与打卡情况/鼓励与建议，共300字左右），要求：
-1.「康复各维度评分解读」只解读动作质量、稳定性、力量、任务完成这4项评分，不要提依从性评分或打卡相关内容；
-2.「依从性与打卡情况」专门讲依从性评分、累计打卡天数、连续打卡天数和近7天打卡记录；
-3. 前4个小标题具体提到平均角度、正确率等数字，并用通俗但专业的康复术语描述（如关节活动度、动作代偿、患侧健侧对比、本体感觉训练、渐进性抗阻训练等）；
-4.「鼓励与建议」控制在2句话以内，简短真诚，明确提到"加油"或"继续努力"，并根据我${allTasksDone ? '今日任务已全部完成' : '今日任务还没完成'}的情况给出对应的表扬或提醒，不要提及我的年龄。`;
+    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
 
     try {
         const controller = new AbortController();
@@ -1397,11 +1100,11 @@ ${recordSummary}
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是亲切但专业的康复医师，直接对患者说话。300字左右，5个小标题，纯文本。前4个小标题客观陈述数据，可使用通俗但规范的康复术语（关节活动度、动作代偿、本体感觉训练等），不使用鼓励性措辞，注意"康复各维度评分解读"和"依从性与打卡情况"两节内容不要重复；只有最后"鼓励与建议"这一节语气温暖，控制在2句话以内，给出简短真诚的加油鼓励话语，并根据今日任务完成情况给出对应的表扬或提醒，不要提及患者年龄。' },
+                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
                     { role: 'user', content: prompt }
                 ],
-                temperature: 0.6,
-                max_tokens: 700,
+                temperature: 0.5,
+                max_tokens: 300,
                 stream: true
             }),
             signal: controller.signal
@@ -1548,6 +1251,7 @@ function closeReportModal() {
 window.closeReportModal = closeReportModal;
 </script>
 <script src="js/chat.js"></script>
+<script src="js/patient-agent.js"></script>
 <script>
 initChat('patient');
 </script>

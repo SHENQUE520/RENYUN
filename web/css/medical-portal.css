@@ -1,0 +1,305 @@
+/*
+ * 韧云智护 · 医疗信息平台主题
+ * 只覆盖视觉表现，不改变业务脚本、数据结构或训练算法。
+ */
+:root{
+  --med-navy:#173d57;
+  --med-blue:#176f8f;
+  --med-blue-deep:#11536d;
+  --med-blue-soft:#eaf3f6;
+  --med-bg:#eef2f4;
+  --med-surface:#ffffff;
+  --med-line:#d7e0e5;
+  --med-line-soft:#e8edef;
+  --med-text:#263640;
+  --med-muted:#687984;
+  --med-pale:#f6f8f9;
+  --med-green:#278060;
+  --med-red:#bd4949;
+  --med-amber:#a66d18;
+  --med-radius:6px;
+}
+
+html,body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;color:var(--med-text);}
+body.patient-page,body.doctor-page,body.task-page,body.profile-page{background:var(--med-bg);}
+a,button,input,select,textarea{font-family:inherit;}
+
+/* 通用顶栏与控件 */
+body:not(.login-page):not(.monitor-page) .app-header{
+  height:64px;min-height:64px;padding:0 28px;background:#fff;
+  border-top:4px solid var(--med-blue);border-bottom:1px solid var(--med-line);
+  box-shadow:none;
+}
+body:not(.login-page):not(.monitor-page) .brand{
+  color:var(--med-navy);font-size:19px;font-weight:650;letter-spacing:.04em;gap:9px;
+}
+.brand-mark,.login-page .brand-logo b{
+  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  color:#fff;background:var(--med-blue);font-size:16px;font-weight:700;font-style:normal;
+  border-radius:3px;letter-spacing:0;
+}
+body:not(.login-page):not(.monitor-page) .brand small{
+  color:var(--med-muted);font-size:12px;font-weight:400;margin-left:5px;padding-left:10px;
+  border-left:1px solid var(--med-line);letter-spacing:0;
+}
+body:not(.login-page):not(.monitor-page) .app-header .avatar,
+body:not(.login-page):not(.monitor-page) .sidebar-avatar{
+  background:var(--med-blue-soft);color:var(--med-blue-deep);border:1px solid #c9dde5;
+  box-shadow:none;
+}
+body:not(.login-page):not(.monitor-page) .role-tag{color:var(--med-muted);}
+body:not(.login-page):not(.monitor-page) .nav-btn,
+body:not(.login-page):not(.monitor-page) .back-btn{
+  border:1px solid var(--med-line);border-radius:4px;background:#fff;color:#50636f;
+  box-shadow:none;transition:border-color .15s,color .15s,background .15s;
+}
+body:not(.login-page):not(.monitor-page) .nav-btn:hover,
+body:not(.login-page):not(.monitor-page) .back-btn:hover{border-color:#9cb6c2;background:var(--med-pale);color:var(--med-navy);}
+body:not(.login-page):not(.monitor-page) .nav-btn.primary,
+body:not(.login-page):not(.monitor-page) .btn-primary{
+  background:var(--med-blue);border-color:var(--med-blue);color:#fff;border-radius:4px;box-shadow:none;
+}
+body:not(.login-page):not(.monitor-page) .nav-btn.primary:hover,
+body:not(.login-page):not(.monitor-page) .btn-primary:hover{background:var(--med-blue-deep);border-color:var(--med-blue-deep);transform:none;box-shadow:none;}
+body:not(.login-page):not(.monitor-page) .card,
+body:not(.login-page):not(.monitor-page) .section-card{
+  background:#fff;border:1px solid var(--med-line);border-radius:var(--med-radius);box-shadow:none;
+}
+body:not(.login-page):not(.monitor-page) .card-title,
+body:not(.login-page):not(.monitor-page) .section-title,
+body:not(.login-page):not(.monitor-page) .section-heading,
+body:not(.login-page):not(.monitor-page) .builder-title{
+  color:var(--med-navy);font-weight:650;letter-spacing:.01em;
+}
+body:not(.login-page):not(.monitor-page) input,
+body:not(.login-page):not(.monitor-page) select,
+body:not(.login-page):not(.monitor-page) textarea{
+  border:1px solid #cbd6dc;border-radius:4px;background:#fff;color:var(--med-text);box-shadow:none;
+}
+body:not(.login-page):not(.monitor-page) input:focus,
+body:not(.login-page):not(.monitor-page) select:focus,
+body:not(.login-page):not(.monitor-page) textarea:focus{
+  border-color:var(--med-blue);box-shadow:0 0 0 2px rgba(23,111,143,.10);outline:none;
+}
+body:not(.login-page):not(.monitor-page) .badge{border-radius:3px;}
+body.patient-page .chat-fab,body.doctor-page .chat-fab{
+  width:44px;height:44px;border-radius:5px;background:var(--med-blue);box-shadow:0 4px 12px rgba(23,61,87,.18);
+  font-size:0;border:1px solid var(--med-blue-deep);
+}
+body.patient-page .chat-fab::before,body.doctor-page .chat-fab::before{
+  content:"讯";font-size:14px;font-weight:650;color:#fff;
+}
+body.patient-page .chat-fab:hover,body.doctor-page .chat-fab:hover{background:var(--med-blue-deep);transform:none;}
+body.patient-page .chat-window,body.doctor-page .chat-window{border-radius:6px;border:1px solid var(--med-line);box-shadow:0 10px 28px rgba(23,51,66,.18);}
+
+/* 登录页：医院/科研平台式双栏入口 */
+body.login-page{
+  background:#edf2f4;padding:34px;position:relative;
+}
+body.login-page::before{
+  content:"";position:fixed;left:0;right:0;top:0;height:6px;background:var(--med-blue);z-index:0;
+}
+.login-page .login-container{
+  max-width:960px;min-height:510px;border-radius:6px;border:1px solid #ccd8de;
+  box-shadow:0 10px 30px rgba(30,54,67,.09);background:#fff;
+}
+.login-page .login-brand{
+  flex:.96;background:var(--med-navy);padding:50px 46px;color:#fff;
+}
+.login-page .login-brand::after{
+  content:"韧云智护";top:auto;right:28px;bottom:16px;width:auto;height:auto;
+  color:rgba(255,255,255,.05);font-size:54px;font-weight:700;background:none;border-radius:0;
+}
+.login-page .brand-logo{font-size:30px;gap:11px;letter-spacing:.08em;}
+.login-page .brand-logo b{background:#fff;color:var(--med-blue-deep);}
+.login-page .brand-logo span{
+  background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:3px;
+  padding:4px 8px;font-size:11px;letter-spacing:.04em;
+}
+.login-page .brand-slogan{font-size:16px;margin-top:15px;opacity:.78;letter-spacing:.06em;}
+.login-page .feature-tags{gap:0;margin-top:34px;border-top:1px solid rgba(255,255,255,.18);padding-top:18px;}
+.login-page .feature-tags .tag{
+  background:none;border:0;border-right:1px solid rgba(255,255,255,.25);border-radius:0;
+  padding:2px 13px;font-size:12px;color:rgba(255,255,255,.78);
+}
+.login-page .feature-tags .tag:first-child{padding-left:0;}
+.login-page .feature-tags .tag:last-child{border-right:0;}
+.login-page .login-form{flex:0 0 400px;padding:50px 48px;}
+.login-page .login-form h2{font-size:22px;color:var(--med-navy);font-weight:650;}
+.login-page .login-form .sub{color:var(--med-muted);margin-bottom:25px;}
+.login-page .role-selector{gap:0;padding:0;background:#f2f5f6;border:1px solid var(--med-line);border-radius:4px;}
+.login-page .role-btn{border-radius:3px;padding:10px 0;color:#60717b;}
+.login-page .role-btn.active{background:#fff;color:var(--med-blue-deep);box-shadow:inset 0 -2px 0 var(--med-blue);}
+.login-page .field input{border:1px solid #cbd6dc;border-radius:4px;}
+.login-page .field input:focus{border-color:var(--med-blue);box-shadow:0 0 0 2px rgba(23,111,143,.10);}
+.login-page .login-btn{background:var(--med-blue);border-radius:4px;padding:12px;box-shadow:none;}
+.login-page .login-btn:hover{background:var(--med-blue-deep);transform:none;box-shadow:none;}
+.login-page .demo-hint{color:#89969e;border-color:var(--med-line-soft);}
+.login-page .demo-hint kbd{background:#f4f6f7;border-color:var(--med-line);border-radius:3px;}
+.login-page>div[style*="position:fixed"] button{background:#fff!important;border:1px solid var(--med-line)!important;border-radius:4px!important;color:var(--med-blue-deep)!important;box-shadow:none!important;}
+.login-page #aboutModal{border-radius:6px!important;box-shadow:0 16px 40px rgba(23,48,62,.2)!important;}
+
+/* 患者端 */
+.patient-page .patient-body{background:var(--med-bg);grid-template-columns:216px minmax(520px,1fr) 314px;}
+.patient-page .sidebar{background:#fff;border-right:1px solid var(--med-line);box-shadow:none;}
+.patient-page .sidebar-user{background:#f4f7f8;border-bottom:1px solid var(--med-line);}
+.patient-page .sidebar-doctor{background:#fff;color:var(--med-blue-deep);border:1px solid #cfe0e6;border-radius:3px;}
+.patient-page .nav-group-label{color:#8a979e;letter-spacing:.08em;font-size:11px;}
+.patient-page .nav-item{border-radius:0;color:#4e606b;border-left:3px solid transparent;}
+.patient-page .nav-item:hover{background:#f3f6f7;color:var(--med-navy);}
+.patient-page .nav-item.active{background:#e9f2f5;color:var(--med-blue-deep);border-left-color:var(--med-blue);font-weight:600;}
+.patient-page .nav-icon{font-family:inherit;font-size:0;width:19px;}
+.patient-page .nav-item[data-view="monitor"] .nav-icon::after{content:"测";}
+.patient-page .nav-item[data-view="overview"] .nav-icon::after{content:"览";}
+.patient-page .nav-item[data-view="agent"] .nav-icon::after{content:"问";}
+.patient-page .nav-item[data-view="chat"] .nav-icon::after{content:"讯";}
+.patient-page .nav-item[data-view="demo"] .nav-icon::after{content:"示";}
+.patient-page .nav-item[data-view="records"] .nav-icon::after{content:"录";}
+.patient-page .nav-icon::after{content:"档";font-size:12px;color:#78909c;}
+.patient-page .sidebar-footer .nav-icon::after{content:"退";}
+.patient-page .center-panel{background:transparent;}
+.patient-page .center-scroll{padding:20px;}
+.patient-page .right-panel{background:#fff;border-left:1px solid var(--med-line);box-shadow:none;}
+.patient-page .mqtt-conn-bar,.patient-page .doc-mqtt-bar{
+  background:#fff;border:1px solid var(--med-line);border-radius:4px;
+}
+.patient-page .mqtt-action-btns{gap:0;border:1px solid var(--med-line);border-radius:4px;overflow:hidden;background:#fff;}
+.patient-page .mqtt-mode-btn{border:0;border-right:1px solid var(--med-line);border-radius:0;background:#fff;color:#566873;box-shadow:none;}
+.patient-page .mqtt-mode-btn:last-child{border-right:0;}
+.patient-page .mqtt-mode-btn.active{background:var(--med-blue);color:#fff;}
+.patient-page .mqtt-status-hero{
+  border-radius:5px;background:#f1f5f5;border:1px solid #cbd9dc;box-shadow:none;
+}
+.patient-page .mqtt-status-hero::before{display:none;}
+.patient-page .mqtt-timer-display{color:var(--med-navy);}
+.patient-page .mqtt-advice-box{background:#fff;border:1px solid var(--med-line);border-radius:3px;color:#4c5f69;}
+.patient-page .mqtt-metric-card,.patient-page .cstat{
+  background:#fff;border:1px solid var(--med-line);border-radius:5px;box-shadow:none;
+}
+.patient-page .cstat .cicon{display:none;}
+.patient-page .mqtt-chart-panel,.patient-page .demo-card{
+  background:#fff;border:1px solid var(--med-line);border-radius:5px;box-shadow:none;
+}
+.patient-page .section-heading{border-left:3px solid var(--med-blue);padding-left:10px;font-size:16px;}
+.patient-page .record-mini,.patient-page #view-records>div[style*="background"]{border-color:var(--med-line)!important;border-radius:5px!important;}
+.patient-page .streak-bar{background:#f2f6f7;border:1px solid var(--med-line);border-radius:4px;}
+.patient-page .streak-num{color:var(--med-blue-deep);}
+.patient-page .cal-section-title,.patient-page .tasks-section-title{color:var(--med-navy);border-left:3px solid var(--med-blue);padding-left:9px;}
+.patient-page .cal-day{border-radius:3px;}
+.patient-page .cal-day.today{box-shadow:inset 0 0 0 1px var(--med-blue);}
+.patient-page .task-card{background:#fff;border:1px solid var(--med-line);border-left:3px solid #8aa9b6;border-radius:4px;box-shadow:none;}
+.patient-page .checkin-btn{border-radius:4px;background:var(--med-blue);box-shadow:none;}
+.patient-page .checkin-btn:hover{background:var(--med-blue-deep);transform:none;box-shadow:none;}
+.patient-page .record-table thead{background:#eef3f5;}
+.patient-page .record-table th{color:#536672;border-bottom-color:var(--med-line);}
+
+/* 训练答疑：业务功能而非“聊天机器人” */
+.patient-page .agent-shell{background:transparent;}
+.patient-page .agent-hero{
+  background:#fff;border:1px solid var(--med-line);border-top:3px solid var(--med-blue);
+  border-radius:5px;box-shadow:none;padding:22px 24px;
+}
+.patient-page .agent-mark{border-radius:3px;background:var(--med-blue-soft);border:1px solid #c9dde5;color:var(--med-blue-deep);}
+.patient-page .agent-eyebrow{color:#778893;letter-spacing:.05em;}
+.patient-page .agent-hero h2{color:var(--med-navy);}
+.patient-page .agent-status{border-radius:3px;background:#f5f8f8;border-color:var(--med-line);color:#647680;}
+.patient-page .agent-context-card,.patient-page .agent-conversation,.patient-page .agent-suggestions{
+  border-radius:5px;border-color:var(--med-line);box-shadow:none;background:#fff;
+}
+.patient-page .agent-layout{gap:14px;}
+.patient-page .agent-messages{background:#fafbfb;}
+.patient-page .agent-message.user .agent-bubble{background:var(--med-blue);border-radius:5px 5px 0 5px;box-shadow:none;}
+.patient-page .agent-message.assistant .agent-bubble{border-color:var(--med-line);border-radius:5px 5px 5px 0;box-shadow:none;}
+.patient-page .agent-composer textarea{border-radius:4px;border-color:#b9c8cf;}
+.patient-page .agent-composer button{border-radius:4px;background:var(--med-blue);box-shadow:none;}
+.patient-page .agent-suggestions button{border-radius:4px;border-color:var(--med-line);background:#fff;}
+.patient-page .agent-suggestions button:hover{background:#f4f7f8;border-color:#aec4ce;transform:none;}
+
+/* 医生工作台 */
+.doctor-page .doctor-body{gap:16px;padding:18px 26px 24px;grid-template-columns:252px 1fr;}
+.doctor-page .plist-card{border-radius:5px;}
+.doctor-page .pitem{border-radius:3px;border:0;border-left:3px solid transparent;}
+.doctor-page .pitem.active{background:#e8f1f4;border-left-color:var(--med-blue);}
+.doctor-page .detail-panel .dpanel-inner{border:1px solid var(--med-line);border-radius:5px;box-shadow:none;}
+.doctor-page .ai-report-btn{background:var(--med-blue);border-radius:4px;box-shadow:none;}
+.doctor-page .ai-report-btn:hover{background:var(--med-blue-deep);box-shadow:none;}
+.doctor-page .stat-item,.doctor-page .doc-mqtt-metric{background:#f7f9fa;border:1px solid var(--med-line);border-radius:4px;box-shadow:none;}
+.doctor-page .icon-bg{background:#e8f1f4!important;color:var(--med-blue-deep)!important;border-radius:3px!important;font-size:12px!important;}
+.doctor-page .doc-mqtt-bar{border-radius:4px;border-color:var(--med-line);background:#f7f9fa;}
+.doctor-page .doc-mqtt-status-pill,.doctor-page .checkin-pill{border-radius:3px;}
+.doctor-page .record-wrap{border-radius:4px;border-color:var(--med-line);}
+.doctor-page .assign-bar{background:#f4f7f8;border-color:var(--med-line);border-radius:4px;}
+.doctor-page .assign-bar .task-btn-link{background:var(--med-blue);border-radius:4px;box-shadow:none;}
+.doctor-page .doc-mob-btn .dm-icon,.patient-page .mob-nav-btn .mob-icon{
+  display:flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border:1px solid #cbd8de;border-radius:3px;font-family:inherit;font-size:11px;color:var(--med-blue-deep);
+}
+.doctor-page .ai-modal-box,.patient-page .ai-modal-box{border-radius:6px;box-shadow:0 14px 36px rgba(28,51,64,.22);}
+.doctor-page .ai-modal-header,.patient-page .ai-modal-header{border-top:3px solid var(--med-blue);}
+.doctor-page .ai-modal-header h3,.patient-page .ai-modal-header h3{color:var(--med-navy);}
+.doctor-page .report-chart-card,.patient-page .report-chart-card{border-radius:4px;background:#f7f9fa;border-color:var(--med-line);}
+
+/* 任务发布 */
+.task-page .task-body{gap:16px;padding:20px 26px 28px;grid-template-columns:1fr 390px;}
+.task-page .preset-card,.task-page .custom-builder,.task-page .assign-panel,.task-page .task-preview-item{
+  border-radius:5px;border:1px solid var(--med-line);box-shadow:none;background:#fff;
+}
+.task-page .preset-card:hover,.task-page .preset-card.selected{border-color:var(--med-blue);background:#edf5f7;}
+.task-page .custom-builder,.task-page .assign-panel{border-top:3px solid #a9bdc6;}
+.task-page .add-action-btn{border-radius:4px;background:#eef5f7;color:var(--med-blue-deep);border-color:#a9c8d3;}
+.task-page .add-action-btn:hover{background:#e2eef2;border-color:var(--med-blue);}
+.task-page .task-preview-item{background:#f8fafb;}
+
+/* 个人信息 */
+.profile-page .profile-body{padding:26px 24px 44px;}
+.profile-page .profile-wrap{max-width:760px;}
+.profile-page .profile-hero{
+  background:#fff;color:var(--med-text);border:1px solid var(--med-line);border-top:3px solid var(--med-blue);
+  border-radius:5px;padding:24px 28px;margin-bottom:16px;box-shadow:none;
+}
+.profile-page .profile-hero::after{display:none;}
+.profile-page .profile-avatar-lg{width:60px;height:60px;background:var(--med-blue-soft);border:1px solid #c5dce5;color:var(--med-blue-deep);border-radius:4px;}
+.profile-page .profile-hero-info .prole{background:#f2f6f7;color:var(--med-muted);border:1px solid var(--med-line);border-radius:3px;opacity:1;}
+.profile-page .section-card{border-radius:5px;padding:24px 28px;margin-bottom:14px;}
+.profile-page .section-title{border-bottom-color:var(--med-line);border-left:3px solid var(--med-blue);padding-left:9px;}
+.profile-page .readonly-field{background:#f4f6f7;border-color:var(--med-line);border-radius:4px;}
+
+/* 独立训练监测页 */
+body.monitor-page{background:var(--med-bg);color:var(--med-text);}
+.monitor-page header{height:auto;min-height:70px;background:var(--med-navy);border-top:4px solid var(--med-blue);box-shadow:none;padding:14px 30px;}
+.monitor-page header h1{font-size:20px;font-weight:650;letter-spacing:.04em;}
+.monitor-page header>div:last-child{border-radius:3px!important;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.18);}
+.monitor-page .container{gap:16px;padding:20px 24px;}
+.monitor-page .panel,.monitor-page .status-hero,.monitor-page .metric-card,.monitor-page .chart-panel{
+  background:#fff;border:1px solid var(--med-line);border-radius:5px;box-shadow:none;
+}
+.monitor-page .panel{border-top:3px solid var(--med-blue);}
+.monitor-page .panel h2{color:var(--med-navy);font-size:16px;border-bottom:1px solid var(--med-line);padding-bottom:12px;}
+.monitor-page .action-btn{border-radius:3px;border:1px solid var(--med-line);background:#fff;color:#52646f;}
+.monitor-page .action-btn:hover{background:#f3f6f7;transform:none;}
+.monitor-page .action-btn.active{background:var(--med-blue);border-color:var(--med-blue);color:#fff;box-shadow:none;}
+.monitor-page .status-hero{background:#f1f5f5;border-color:#cbd9dc;}
+.monitor-page .timer-display{color:var(--med-navy);}
+.monitor-page .advice-box{border-radius:3px;background:#fff;border:1px solid var(--med-line);}
+.monitor-page .metric-value{color:var(--med-blue-deep);}
+
+@media(max-width:1050px){
+  .patient-page .patient-body{grid-template-columns:190px 1fr;}
+  .patient-page .right-panel{display:none;}
+  .doctor-page .doctor-body,.task-page .task-body{grid-template-columns:1fr;overflow-y:auto;}
+}
+@media(max-width:860px){
+  body:not(.login-page):not(.monitor-page) .app-header{padding:0 16px;}
+  .patient-page .patient-body{display:block;}
+  .patient-page .center-scroll{padding:14px;}
+}
+@media(max-width:640px){
+  body.login-page{padding:12px;overflow:auto;align-items:flex-start;}
+  .login-page .login-container{margin-top:30px;min-height:auto;}
+  .login-page .login-brand,.login-page .login-form{padding:28px 24px;}
+  .login-page .feature-tags{display:none;}
+  .patient-page .agent-layout{grid-template-columns:1fr;}
+  .doctor-page .doctor-body,.task-page .task-body{padding:12px;padding-bottom:72px;}
+  .profile-page .profile-body{padding:14px;}
+  .monitor-page .container{padding:12px;}
+}

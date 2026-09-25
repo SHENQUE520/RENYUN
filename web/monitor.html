@@ -22,7 +22,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Microsoft YaHei','微软雅黑','PingFang SC',sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     body {
@@ -634,12 +634,13 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="css/medical-portal.css"/>
 </head>
-<body>
+<body class="monitor-page">
 
   <header>
     <div>
-      <h1>《韧云智护》智能康复训练监视系统</h1>
+      <h1>韧云智护康复训练监测系统</h1>
       <p style="font-size: 13px; color: #cbd5e0; margin-top: 5px;">基于高精度双核惯导算法的ACL术后评估方案</p >
     </div>
     <div style="display: flex; align-items: center; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 30px;">
@@ -660,7 +661,7 @@
       </div>
       
       <div style="margin-top: 30px; font-size: 13px; color: #7f8c8d; line-height: 1.6; border-top: 1px solid #edf2f7; padding-top: 15px;">
-        <p><strong> 智能语音播报开启：</strong></p >
+        <p><strong>语音提示已开启</strong></p >
         <p>系统已连接至云端，请将硬件传感器佩戴妥当。系统将自动识别姿态并进行实时语音纠错指引。</p >
       </div>
     </div>
@@ -691,7 +692,7 @@
 
       <!-- 实时变化曲线 -->
       <div class="chart-panel">
-        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--navy-blue);"> 实时关节姿态动态解算曲线</h3>
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--navy-blue);">实时关节姿态动态解算曲线</h3>
         <div style="height: clamp(180px, 25vw, 260px); position: relative;">
           <canvas id="poseChart"></canvas>
         </div>
@@ -701,7 +702,7 @@
 
   <script>
     // =========================================================================
-    //  1. 采用你源码完全一致的本地私有/公有 MQTT 连接架构
+    // 🔌 1. 采用你源码完全一致的本地私有/公有 MQTT 连接架构
     // =========================================================================
     const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; 
     const topic = 'iot/rehab/renyun/data';
@@ -717,7 +718,7 @@
     const client = mqtt.connect(brokerUrl);
 
     // =========================================================================
-    //  2. 语音播报核心逻辑
+    // 🔊 2. 语音播报核心逻辑
     // =========================================================================
     function speak(text) {
       if ('speechSynthesis' in window) {
@@ -731,7 +732,7 @@
     }
 
     // =========================================================================
-    //  3. 动作计时器
+    // ⏱️ 3. 动作计时器
     // =========================================================================
     function updateTimer(isCorrect) {
       const timerEl = document.getElementById('timer');
@@ -755,7 +756,7 @@
     }
 
     // =========================================================================
-    //  4. 模式切换控制
+    // 🎛️ 4. 模式切换控制
     // =========================================================================
     document.querySelectorAll('.action-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -776,7 +777,7 @@
     });
 
     // =========================================================================
-    //  5. MQTT 通信监听与解算状态机
+    // 🔌 5. MQTT 通信监听与解算状态机
     // =========================================================================
     client.on('connect', () => {
       client.subscribe(topic);
@@ -808,7 +809,7 @@
         const absPitch = Math.abs(pitch);
         const absRoll = Math.abs(roll);
 
-        // =======  核心康复临床解算算法优化 =======
+        // ======= 🚀 核心康复临床解算算法优化 =======
         if (currentMode === 'squat') { // 1. 靠墙静蹲
           if (absPitch >= 30 && absPitch <= 65) {
             feedback = "静蹲姿态优秀，请保持均匀呼吸";
@@ -888,7 +889,7 @@
           }
         }
 
-        // =======  智能看板背景与文字色彩转换 =======
+        // ======= 🎨 智能看板背景与文字色彩转换 =======
         adviceEl.textContent = feedback;
         if (uiState === "standard") {
           cardEl.style.backgroundColor = "var(--accent-green)";
@@ -917,7 +918,7 @@
         // 更新精细计时器
         updateTimer(isCorrect);
 
-        // =======  实时曲线渲染（Chart.js） =======
+        // ======= 📈 实时曲线渲染（Chart.js） =======
         pitchHistory.push(pitch);
         rollHistory.push(roll);
         timeLabels.push(new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'}));
@@ -935,7 +936,7 @@
     });
 
     // =========================================================================
-    //  6. 图表渲染器初始化
+    // 📊 6. 图表渲染器初始化
     // =========================================================================
     function initChart() {
       chart = new Chart(document.getElementById('poseChart'), {
