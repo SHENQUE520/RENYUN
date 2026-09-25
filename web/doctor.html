@@ -148,23 +148,24 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 .doc-mqtt-metric .dlabel{font-size:11px;color:#7f8c8d;display:block;margin-bottom:4px;}
 .doc-mqtt-metric .dvalue{font-size:18px;font-weight:700;color:#1a365d;}
 </style>
+<link rel="stylesheet" href="css/medical-portal.css"/>
 </head>
-<body>
+<body class="doctor-page">
 <div id="toast" class="toast"></div>
 <header class="app-header">
     <div class="left">
-        <a class="brand" href="doctor.html"> <span class="brand-text"><span>韧云</span><span>智护</span></span><small>· 医生工作台</small></a>
+        <a class="brand" href="doctor.html"><b class="brand-mark">韧</b> <span class="brand-text"><span>韧云智护</span></span><small>医生工作台</small></a>
     </div>
     <div class="right">
         <a class="user-info" href="profile.html">
             <div class="avatar" id="headerAvatar">李</div>
             <div class="detail">
                 <div class="name" id="headerName">李医生</div>
-                <div class="role-tag"> 主治医师</div>
+                <div class="role-tag">主治医师</div>
             </div>
         </a>
         <span class="doctor-ref" id="headerRef"></span>
-        <a class="nav-btn primary" href="doctor-task.html" id="assignTaskBtn"> 发布任务</a>
+        <a class="nav-btn primary" href="doctor-task.html" id="assignTaskBtn">发布任务</a>
         <button class="nav-btn" onclick="logout()">退出</button>
     </div>
 </header>
@@ -173,19 +174,8 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
     <!-- Patient list -->
     <div class="card plist-card">
         <div class="card-title">
-            <span> 患者列表</span>
+            <span>患者列表</span>
             <span class="sub" id="pTotal">5 位</span>
-        </div>
-        <!-- 待审核区域 -->
-        <div id="pendingSection" style="display:none;padding:0 14px 0 0;margin-bottom:10px;">
-            <div style="font-size:12px;font-weight:600;color:#d97706;padding:4px 0 6px;
-                display:flex;align-items:center;gap:6px;">
-                待审核患者
-                <span id="pendingCount" style="background:#fef3c7;color:#d97706;
-                    font-size:11px;padding:1px 8px;border-radius:4px;margin-left:auto;">0</span>
-            </div>
-            <div id="pendingList"></div>
-            <div style="border-top:1px solid #f1f5f9;margin:8px 0 4px;"></div>
         </div>
         <div class="plist-scroll" id="plistWrap"></div>
     </div>
@@ -196,22 +186,22 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             <div class="detail-head">
                 <div class="dname" id="dPatientName">张明 <small>康复中</small></div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <button class="ai-report-btn" onclick="generateDoctorReport()"> AI报告</button>
+                    <button class="ai-report-btn" onclick="generateDoctorReport()">康复评估</button>
                     <span class="badge badge-green" id="dStatusTag">标准</span>
                 </div>
             </div>
 
             <div class="stats-row" id="statsRow">
                 <div class="stat-item">
-                    <div class="icon-bg"></div>
+                    <div class="icon-bg">患</div>
                     <div><div class="num" id="statTotal">5</div><div class="lbl">管理患者</div></div>
                 </div>
                 <div class="stat-item">
-                    <div class="icon-bg"></div>
+                    <div class="icon-bg">活</div>
                     <div><div class="num" id="statActive">0</div><div class="lbl">今日活跃</div></div>
                 </div>
                 <div class="stat-item">
-                    <div class="icon-bg"></div>
+                    <div class="icon-bg">警</div>
                     <div><div class="num" id="statWarn">0</div><div class="lbl">预警提醒</div></div>
                 </div>
             </div>
@@ -241,7 +231,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
                 <canvas id="doctorChart"></canvas>
             </div>
 
-            <div class="record-section"> 动作执行记录</div>
+            <div class="record-section">动作执行记录</div>
             <div class="record-wrap">
                 <table class="record-table" id="recordTable">
                     <thead><tr>
@@ -252,7 +242,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             </div>
 
             <div class="assign-bar">
-                <span class="alabel"> 快速发放任务</span>
+                <span class="alabel">快速发放任务</span>
                 <select id="quickPatient"></select>
                 <select id="quickTask">
                     <option>直腿抬高</option><option>靠墙静蹲</option>
@@ -270,16 +260,16 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <!-- ══ DOCTOR MOBILE BOTTOM NAV ══ -->
 <nav class="doc-mobile-nav" id="docMobileNav">
     <button class="doc-mob-btn active" onclick="docMobNav('plist',this)">
-        <span class="dm-icon"></span>患者
+        <span class="dm-icon">患</span>患者
     </button>
     <button class="doc-mob-btn" onclick="window._openChat&&window._openChat()">
-        <span class="dm-icon"></span>沟通
+        <span class="dm-icon">讯</span>沟通
     </button>
     <button class="doc-mob-btn" onclick="generateDoctorReport()">
-        <span class="dm-icon"></span>报告
+        <span class="dm-icon">评</span>报告
     </button>
     <button class="doc-mob-btn" onclick="location.href='doctor-task.html'">
-        <span class="dm-icon"></span>任务
+        <span class="dm-icon">任</span>任务
     </button>
 </nav>
 
@@ -287,7 +277,7 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 <div class="ai-modal-overlay" id="aiModal" onclick="if(event.target===this)closeReportModal()">
     <div class="ai-modal-box" onclick="event.stopPropagation()">
         <div class="ai-modal-header">
-            <h3> AI 康复评估报告</h3>
+            <h3>康复评估报告</h3>
             <button class="ai-modal-close" onclick="closeReportModal()">&times;</button>
         </div>
         <div class="ai-modal-progress" id="aiProgress" style="display:none;height:3px;background:#e9f0fa;overflow:hidden;flex-shrink:0;"><div class="bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);animation:progressAnim 8s ease-out forwards;"></div></div>
@@ -295,10 +285,10 @@ body{height:100vh;overflow:hidden;display:flex;flex-direction:column;}
             <div class="ai-modal-body" id="aiModalBody">
                 正在生成报告...
             </div>
-            <!--  图表区域 -->
+            <!-- 📊 图表区域 -->
             <div id="reportChartArea" style="display:none;padding:0 22px 16px 22px;">
                 <div style="border-top:1px solid #edf2f7;padding-top:8px;margin-bottom:8px;">
-                    <span style="font-size:11px;font-weight:600;color:#0a2540;"> 数据可视化</span>
+                    <span style="font-size:11px;font-weight:600;color:#0a2540;">数据概览</span>
                 </div>
                 <div class="report-chart-grid">
                     <div class="report-chart-card">
@@ -343,9 +333,9 @@ function renderPatientList() {
         const checkedToday = p.history.some(h => h.date === today && h.done);
         const warnCount = p.records.filter(r => r.abnormal > 0).length;
         const pill = warnCount > 0
-            ? `<span class="checkin-pill warn"> ${warnCount}</span>`
+            ? `<span class="checkin-pill warn">⚠️ ${warnCount}</span>`
             : checkedToday
-                ? `<span class="checkin-pill"> 已打卡</span>`
+                ? `<span class="checkin-pill">✅ 已打卡</span>`
                 : `<span class="checkin-pill warn">未打卡</span>`;
         return `<div class="pitem ${active}" onclick="selectPatient('${p.id}')">
             <div>
@@ -437,13 +427,12 @@ function renderQuickSelect() {
     ).join('');
 }
 
-document.getElementById('quickAssignBtn').onclick = async function() {
+document.getElementById('quickAssignBtn').onclick = function() {
     const pid = document.getElementById('quickPatient').value;
     const taskName = document.getElementById('quickTask').value;
     const count = parseInt(document.getElementById('quickCount').value) || 15;
     const p = DB.patients.find(x => x.id === pid);
     if (!p) return;
-    // 本地 DB 更新
     const existing = p.tasks.find(t => t.name === taskName);
     if (existing) { existing.count = count; existing.done = false; }
     else p.tasks.push({name:taskName, count, unit:'次', keyPoints:'', details:'', done:false});
@@ -452,14 +441,6 @@ document.getElementById('quickAssignBtn').onclick = async function() {
     p.records.unshift({time:ts,action:taskName,pitch:Math.round(30+Math.random()*25),abnormal:0,status:'标准'});
     if (p.records.length > 20) p.records.pop();
     saveDB();
-    // 同步到服务器（触发 SSE 广播给患者端）
-    try {
-        await fetch(`/api/tasks/${pid}`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({name:taskName, count, unit:'次', key_points:'', details:''})
-        });
-    } catch(e) { /* 离线时仍靠 localStorage 同步 */ }
     renderDetail(DB.currentPatientId);
     renderPatientList();
     showToast(`已向 ${p.name} 发放：${taskName} × ${count}`, 'success');
@@ -467,66 +448,6 @@ document.getElementById('quickAssignBtn').onclick = async function() {
 
 renderPatientList();
 renderDetail(DB.currentPatientId);
-
-async function loadPendingPatients() {
-    try {
-        const resp = await fetch('/api/patients/pending');
-        if (!resp.ok) return;
-        const list = await resp.json();
-        const section = document.getElementById('pendingSection');
-        const pendingList = document.getElementById('pendingList');
-        const countEl = document.getElementById('pendingCount');
-        if (!list.length) { section.style.display = 'none'; return; }
-        section.style.display = 'block';
-        countEl.textContent = list.length;
-        pendingList.innerHTML = list.map(p => `
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:5px;
-                padding:10px 12px;margin-bottom:6px;">
-                <div style="font-weight:500;font-size:13px;color:#0a2540;">${p.name}
-                    <small style="color:#94a3b8;font-weight:400;margin-left:4px;">${p.gender||''} ${p.age||''}岁</small>
-                </div>
-                ${p.diagnosis ? `<div style="font-size:11px;color:#64748b;margin:2px 0;">${p.diagnosis}</div>` : ''}
-                ${p.hospital ? `<div style="font-size:11px;color:#94a3b8;">${p.hospital}</div>` : ''}
-                <div style="display:flex;gap:6px;margin-top:7px;">
-                    <button onclick="approvePatient('${p.id}')"
-                        style="flex:1;padding:5px 0;background:#dcfce7;color:#16a34a;
-                        border:none;border-radius:4px;font-size:12px;cursor:pointer;font-weight:500;">
-                        批准
-                    </button>
-                    <button onclick="rejectPatient('${p.id}')"
-                        style="flex:1;padding:5px 0;background:#fee2e2;color:#dc2626;
-                        border:none;border-radius:4px;font-size:12px;cursor:pointer;font-weight:500;">
-                        拒绝
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    } catch(e) { /* 服务器未启动时静默 */ }
-}
-
-async function approvePatient(patientId) {
-    const doctor = getCurrentDoctor();
-    try {
-        const resp = await fetch(`/api/patients/${patientId}/approve`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ doctorId: doctor.id, doctorName: doctor.name })
-        });
-        if (resp.ok) { showToast('已批准该患者', 'success'); loadPendingPatients(); }
-    } catch(e) { showToast('操作失败', 'error'); }
-}
-
-async function rejectPatient(patientId) {
-    try {
-        const resp = await fetch(`/api/patients/${patientId}/reject`, { method: 'POST' });
-        if (resp.ok) { showToast('已拒绝该患者申请', 'info'); loadPendingPatients(); }
-    } catch(e) { showToast('操作失败', 'error'); }
-}
-
-window.approvePatient = approvePatient;
-window.rejectPatient = rejectPatient;
-
-loadPendingPatients();
 
 // ── 实时监测（MQTT硬件连接）──────────────────────────
 try {
@@ -580,7 +501,7 @@ async function generateDoctorReport() {
     const progress = document.getElementById('aiProgress');
 
     modal.classList.add('open');
-    body.textContent = '正在连接AI服务...';
+    body.textContent = '正在整理康复数据...';
     chartArea.style.display = 'none';
     progress.style.display = 'block';
     progress.innerHTML = '<div class="bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);animation:progressAnim 8s ease-out forwards;"></div>';
@@ -598,46 +519,15 @@ async function generateDoctorReport() {
         else if (d < cursor) break;
     }
 
-    const recordSummary = (p.records || []).slice(0, 10).map(r =>
-        `${r.time} ${r.action} ${r.pitch}° 异常${r.abnormal}次 ${r.status}`
+    const recordSummary = (p.records || []).slice(0, 5).map(r =>
+        `${r.action}${r.pitch}°${r.status}`
     ).join('；') || '暂无';
 
     const taskSummary = (p.tasks || []).map(t =>
-        `${t.name}×${t.count}${t.unit}${t.done ? '(已完成)' : '(未完成)'}`
+        `${t.name}×${t.count}`
     ).join('；') || '暂无';
 
-    const historySummary = (p.history || []).slice(-7).map(h =>
-        `${h.date}${h.done ? '✓' : '✗'}`
-    ).join(' ') || '暂无';
-
-    const totalRec = p.records.length || 1;
-    const standardCount = (p.records || []).filter(r => r.status === '标准').length;
-    const abnormalTotal = (p.records || []).reduce((s, r) => s + (parseInt(r.abnormal) || 0), 0);
-    const avgPitch = (p.records.reduce((s, r) => s + (parseFloat(r.pitch) || 0), 0) / totalRec).toFixed(1);
-    const last7Rates = (p.records || []).slice(0, 7).map(r => {
-        const pitch = parseFloat(r.pitch) || 0;
-        return Math.min(100, Math.round((1 - Math.abs(pitch - 40) / 40) * 100));
-    });
-    const standardRatio = Math.min(100, Math.round((standardCount / totalRec) * 100));
-    const stability = Math.min(100, 100 - Math.round((p.records.filter(r => r.abnormal > 0).length / totalRec) * 100));
-    const compliance = Math.min(100, Math.round((p.history.filter(h => h.done).length / Math.max(7, p.history.length)) * 100));
-    const taskProgress = Math.min(100, Math.round((p.tasks.filter(t => t.done).length / Math.max(1, p.tasks.length)) * 100));
-
-    const prompt = `患者：${p.name}，${p.age}岁${p.gender||''}，诊断：${p.notes||p.status||'康复中'}，手术日期：${p.surgeryDate||'未知'}，主治医生：${p.doctor||'未知'}。
-
-【训练记录明细】（共${totalRec}条，标准动作${standardCount}条，异常累计${abnormalTotal}次，平均角度${avgPitch}°）
-${recordSummary}
-
-【正确率趋势数据】（近7次，对应图表"正确率趋势"）：${last7Rates.join('% , ')}%
-
-【康复雷达四维度评分】（对应图表"康复雷达"，满分100）
-动作质量${standardRatio}分 / 稳定性${stability}分 / 依从性${compliance}分 / 任务完成${taskProgress}分
-
-【今日任务】${taskSummary}
-
-【打卡统计】累计${totalCheckins}天，连续${streakDays}天，近7天记录：${historySummary}
-
-请结合以上训练记录明细、正确率趋势数据、康复雷达四维度评分，生成一份详细的康复评估报告（6个小标题：患者概况/训练数据分析/动作质量评估/依从性评价/风险提示/临床建议，共450字左右）。要求在"训练数据分析"和"动作质量评估"部分明确引用具体数字（如平均角度、正确率、各维度评分），让报告和图表数据能相互印证，并适当使用规范的康复医学术语（如关节活动度、动作代偿、患侧健侧对比、闭链/开链运动、渐进性抗阻训练、本体感觉训练等）。`;
+    const prompt = `${p.name}，${p.age}岁${p.gender||''}，${p.status||'康复中'}。记录：${recordSummary}。任务：${taskSummary}。打卡${totalCheckins}天连续${streakDays}天。生成简短康复评估（5小标题：概况/训练/依从性/风险/建议，共150字内）`;
 
     try {
         const controller = new AbortController();
@@ -648,11 +538,11 @@ ${recordSummary}
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: 'system', content: '你是专业的康复医师，为主治医生撰写详细、专业的患者康复评估报告。450字左右，6个小标题，纯文本，语气专业、有数据支撑，报告内容要具体引用给出的数字数据，并适当使用规范的康复医学术语（关节活动度、动作代偿、患侧健侧对比、渐进性抗阻训练、本体感觉训练等）。' },
+                    { role: 'system', content: '你是康复医师。150字内回复，5个小标题，纯文本。' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.5,
-                max_tokens: 900,
+                max_tokens: 300,
                 stream: true
             }),
             signal: controller.signal

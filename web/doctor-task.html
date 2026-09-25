@@ -54,19 +54,20 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 @media(max-width:1000px){.task-body{grid-template-columns:1fr;}}
 @media(max-width:640px){.task-body{padding:14px;gap:14px;}.preset-grid{grid-template-columns:1fr;}}
 </style>
+<link rel="stylesheet" href="css/medical-portal.css"/>
 </head>
-<body>
+<body class="task-page">
 <div id="toast" class="toast"></div>
 <header class="app-header">
     <div class="left">
-        <a class="brand" href="doctor.html"> 韧云智护<small>· 发布任务</small></a>
+        <a class="brand" href="doctor.html"><b class="brand-mark">韧</b> 韧云智护<small>发布任务</small></a>
     </div>
     <div class="right">
         <a class="user-info" href="profile.html">
             <div class="avatar" id="headerAvatar">李</div>
             <div class="detail">
                 <div class="name" id="headerName">李医生</div>
-                <div class="role-tag"> 主治医师</div>
+                <div class="role-tag">主治医师</div>
             </div>
         </a>
         <a class="nav-btn" href="doctor.html">← 返回工作台</a>
@@ -79,13 +80,13 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
     <div class="builder-col">
         <!-- Preset actions -->
         <div class="card" style="padding:22px 24px;">
-            <div class="card-title"> 预设动作<span class="sub">点击添加到任务单</span></div>
+            <div class="card-title">预设动作<span class="sub">点击添加到任务单</span></div>
             <div class="preset-grid" id="presetGrid"></div>
         </div>
 
         <!-- Custom action builder -->
         <div class="custom-builder">
-            <div class="builder-title"> 自定义动作</div>
+            <div class="builder-title">自定义动作</div>
             <div class="inline-row">
                 <div class="field">
                     <label>动作名称</label>
@@ -122,7 +123,7 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
     <!-- Right: patient selector + task list -->
     <div class="assign-col">
         <div class="assign-panel">
-            <div class="card-title"> 选择患者</div>
+            <div class="card-title">选择患者</div>
             <div class="field" style="margin-bottom:0;">
                 <select id="targetPatient" style="font-size:15px;padding:12px 14px;"></select>
             </div>
@@ -130,7 +131,7 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
 
         <div class="assign-panel" style="flex:1;display:flex;flex-direction:column;">
             <div class="card-title">
-                <span> 当前任务单</span>
+                <span>当前任务单</span>
                 <span class="sub" id="taskCount">0 项</span>
             </div>
             <div class="task-preview-list" id="taskPreviewList">
@@ -138,7 +139,7 @@ body{min-height:100vh;display:flex;flex-direction:column;background:#f5f9ff;}
             </div>
             <div class="submit-bar">
                 <button class="btn btn-primary btn-full" id="submitTasksBtn" style="margin-top:14px;">
-                     发布任务单
+                    发布任务单
                 </button>
             </div>
         </div>
@@ -226,7 +227,7 @@ function renderPatientSelect() {
     ).join('');
 }
 
-document.getElementById('submitTasksBtn').onclick = async function() {
+document.getElementById('submitTasksBtn').onclick = function() {
     if (!draftTasks.length) { showToast('请先添加至少一个动作', 'error'); return; }
     const pid = document.getElementById('targetPatient').value;
     const p = DB.patients.find(x => x.id === pid);
@@ -246,17 +247,6 @@ document.getElementById('submitTasksBtn').onclick = async function() {
     if (p.records.length > 30) p.records.length = 30;
 
     saveDB();
-
-    // 同步到服务器（触发 SSE 广播给患者端）
-    try {
-        await Promise.all(draftTasks.map(dt => fetch(`/api/tasks/${pid}`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({name:dt.name, count:dt.count, unit:dt.unit||'次',
-                key_points:dt.keyPoints||'', details:dt.details||''})
-        })));
-    } catch(e) { /* 离线时靠 localStorage 同步 */ }
-
     showToast(`已向 ${p.name} 发布 ${draftTasks.length} 项任务`, 'success');
     draftTasks = [];
     renderDraftList();
