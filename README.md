@@ -14,7 +14,7 @@
 
 ## 贡献
 
-> [!NOTE]  
+> [!IMPORTANT]  
 > 所有人必须在开发前遵循以下规范，以避免开发中的代码冲突、重复：
 > - 禁止重复实现已有的类、实体、功能、util等
 > - 请勿直接push main分支，所有人必须创建自己的分支，然后推送代码到dev分支，然后pull request到main，见[git.md](docs/util/git.md)
@@ -25,5 +25,5 @@
 ## 版本：迭代 1 · 2026-09-17
 | 任务             | 负责人    | 状态  | 构建  | 测试      | 后端文档（必读）                                                                  | 前端API文档（必读） |
 |----------------|--------|-----|-----|---------|---------------------------------------------------------------------------|-------------|
-| 应用基础，登录，数据库，缓存 | Lotiyu | 已完成 | ✅通过 | 🔄待前端测试 | [iteration-development-roadmap.md](docs/iteration-development-roadmap.md) | 🔄待组长确定     |
+| 应用基础，登录，数据库，缓存 | Lotiyu | 已完成 | ✅通过 | 🔄待前端测试 | [iteration-development-roadmap.md](docs/iteration-development-roadmap.md) |   [api-reference.md](docs/api-reference.md)   |
 | ...            | ...    | ... | ... | ...     | ...                                                                       | ...         |
