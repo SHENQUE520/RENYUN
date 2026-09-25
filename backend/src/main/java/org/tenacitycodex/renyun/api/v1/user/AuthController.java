@@ -15,6 +15,7 @@ import org.tenacitycodex.renyun.common.config.security.SecurityUtil;
 import org.tenacitycodex.renyun.common.dto.ApiResponse;
 import org.tenacitycodex.renyun.common.dto.UserDTO;
 import org.tenacitycodex.renyun.common.dto.request.LoginRequest;
+import org.tenacitycodex.renyun.common.dto.request.PatientRegisterRequest;
 import org.tenacitycodex.renyun.common.dto.request.RegisterRequest;
 import org.tenacitycodex.renyun.common.exceptions.ApiException;
 import org.tenacitycodex.renyun.common.util.JwtUtil;
@@ -24,11 +25,11 @@ import org.tenacitycodex.renyun.module.user.entity.User;
 import org.tenacitycodex.renyun.module.user.service.UserService;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("api/v1/auth/portal")
 public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
@@ -44,7 +45,7 @@ public class AuthController {
 
     @CrossOrigin
     @RateLimit
-    @PostMapping("/login")
+    @PostMapping("/api/v1/auth/portal/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest formData, HttpServletResponse httpResponse) {
         log.info("User response: {}", formData);
         String loginType = formData.getLoginType();
@@ -68,7 +69,7 @@ public class AuthController {
     }
 
     @RateLimit
-    @DeleteMapping("/logout")
+    @DeleteMapping("/api/v1/auth/portal/logout")
     public ResponseEntity<?> logoutUser(HttpServletResponse httpResponse) {
         if (!SecurityUtil.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not Logged in.");
@@ -86,7 +87,7 @@ public class AuthController {
     }
 
     @RateLimit(maxRequests = 2)
-    @PostMapping("/register")
+    @PostMapping("/api/v1/auth/portal/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest payload, HttpServletResponse httpResponse) {
         User registered;
         try {
@@ -113,5 +114,57 @@ public class AuthController {
         } else {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Information is not completed, cloud not register.");
         }
+    }
+
+    @PostMapping("/api/auth/login")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> loginByUsername(
+            @RequestBody Map<String, String> body, HttpServletResponse httpResponse) {
+        String username = body.get("username");
+        String password = body.get("password");
+        String role = body.get("role");
+        if (username == null || password == null || role == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "参数不完整");
+        }
+        User user = userService.getUserByUsername(username);
+        if (user == null || !userService.checkPassword(user, password) || !role.equals(user.getRole())) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "账号或密码错误");
+        }
+        if ("patient".equals(user.getRole()) && "pending".equals(user.getStatus())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "等待医生审核，请耐心等待");
+        }
+        if ("patient".equals(user.getRole()) && "rejected".equals(user.getStatus())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "注册申请已被拒绝，请联系医生");
+        }
+        String token = jwtUtil.generateToken(user);
+        ResponseCookie auth = ResponseCookie.from("access_token", token)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path(COOKIE_ROOT)
+                .maxAge(Duration.ofDays(7))
+                .build();
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, auth.toString());
+
+        Map<String, Object> userInfo = userService.buildFullUserInfo(user);
+        return ResponseEntity.ok(ApiResponse.ok(userInfo));
+    }
+
+    @PostMapping("/api/auth/register")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> registerWithRole(
+            @RequestBody PatientRegisterRequest request, HttpServletResponse httpResponse) {
+        User registered = userService.registerWithRole(request);
+        String token = jwtUtil.generateToken(registered);
+        ResponseCookie auth = ResponseCookie.from("access_token", token)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path(COOKIE_ROOT)
+                .maxAge(Duration.ofDays(7))
+                .build();
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, auth.toString());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", registered.getId());
+        result.put("role", registered.getRole());
+        result.put("name", registered.getName() != null ? registered.getName() : registered.getUsername());
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 }

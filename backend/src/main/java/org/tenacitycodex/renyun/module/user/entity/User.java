@@ -13,7 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users", indexes = {@Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_name", columnList = "username")})
+        @Index(name = "idx_user_name", columnList = "username"),
+        @Index(name = "idx_user_role", columnList = "role"),
+        @Index(name = "idx_user_role_status", columnList = "role, status")})
 public class User {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false, unique = true)
@@ -29,6 +31,20 @@ public class User {
     private String email;
 
     private int age;
+
+    @Column(name = "role", nullable = false)
+    @Builder.Default
+    private String role = "patient";
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private String status = "pending";
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
