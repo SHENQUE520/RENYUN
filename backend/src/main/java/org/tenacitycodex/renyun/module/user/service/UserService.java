@@ -173,6 +173,7 @@ public class UserService implements IUserService {
                 .username(request.getUsername())
                 .passwordHash(hashedPassword)
                 .role("patient")
+                .gender(request.getGender())
                 .name(request.getName())
                 .status("active")
                 .build();
