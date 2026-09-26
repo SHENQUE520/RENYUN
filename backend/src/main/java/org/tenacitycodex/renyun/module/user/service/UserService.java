@@ -179,6 +179,14 @@ public class UserService implements IUserService {
                 .build();
         try {
             userRepository.save(user);
+            patientProfileRepository.save(PatientProfile.builder()
+                    .userId(user.getId())
+                    .age(request.getAge())
+                    .diagnosis(request.getDiagnosis())
+                    .hospital(request.getHospital())
+                    .doctorId(request.getDoctorId())
+                    .doctorName(request.getDoctorName())
+                    .build());
             userCacheEngine.setUserUsernameKey(user);
         } catch (Exception e) {
             throw new IllegalArgumentException("");
