@@ -122,7 +122,6 @@ Content-Type: application/json
   "data": null
 }
 ```
-
 ### 示例返回 （409）：
 
 ```json
@@ -195,11 +194,15 @@ Content-Type: application/json
     "data": "【训练概况】\n本次直腿抬高训练时长 120.5 秒，完成有效动作 8 次……\n\n【动作评估】\n……\n\n【风险提示】\n……\n\n【康复建议】\n……"
   }
   ```
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 - **400 Bad Request**（缺少必要训练数据：`mode` 或 `stats` 为空）
   ```json
   { "success": false, "message": "缺少必要的训练数据", "data": null }
   ```
-- **500 Internal Server Error**（服务器未配置 DEEPSEEK_API_KEY）
+- **502 Bad Gateway**（服务器未配置 DEEPSEEK_API_KEY）
   ```json
   { "success": false, "message": "服务器未配置 DEEPSEEK_API_KEY", "data": null }
   ```
@@ -248,7 +251,11 @@ Content-Type: application/json
     "data": "【患者概况】\n患者张三，男，35岁……\n\n【训练表现】\n……\n\n【康复依从性】\n……\n\n【风险提示】\n……\n\n【下一步建议】\n……"
   }
   ```
-- **500 Internal Server Error**（未配置 AI Key）
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
+- **502 Bad Gateway**（未配置 AI Key）
   ```json
   { "success": false, "message": "服务器未配置 DEEPSEEK_API_KEY", "data": null }
   ```
@@ -293,11 +300,14 @@ Content-Type: application/json
   ```json
   { "success": false, "message": "缺少消息内容", "data": null }
   ```
-- **500 Internal Server Error**（未配置 AI Key）
+- **502 Bad Gateway**（未配置 AI Key）
   ```json
   { "success": false, "message": "服务器未配置 DEEPSEEK_API_KEY", "data": null }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ---
 
 ## 4. 任务管理
@@ -333,7 +343,10 @@ GET /api/tasks/123456789 HTTP/1.1
     ]
   }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 4.2 医生发布/更新任务（按任务名 upsert）
 
 #### `POST /api/tasks/{patientId}`
@@ -378,7 +391,10 @@ Content-Type: application/json
   }
   ```
   > 说明：若该患者已存在同名任务，则更新原任务的数量、单位、说明并重置为 `pending`；否则新建任务。发布成功后会通过 SSE 推送 `{"type":"new_task","patientId":"..."}`。
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 4.3 更新任务状态
 
 #### `PATCH /api/tasks/{taskId}`
@@ -421,7 +437,10 @@ Content-Type: application/json
   ```json
   { "success": false, "message": "任务不存在", "data": null }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ---
 
 ## 5. 消息与实时推送
@@ -491,7 +510,10 @@ GET /api/messages?patientId=123456789 HTTP/1.1
     ]
   }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 5.3 发送消息
 
 #### `POST /api/messages`
@@ -539,7 +561,10 @@ Content-Type: application/json
   }
   ```
   > 发送成功后会通过 SSE 广播 `{"type":"message","msg":{...}}` 给所有在线客户端。
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 5.4 撤回消息
 
 #### `PATCH /api/messages/{id}/recall`
@@ -577,7 +602,10 @@ PATCH /api/messages/msg-uuid-002/recall HTTP/1.1
   ```json
   { "success": false, "message": "消息不存在", "data": null }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ---
 
 ## 6. 医生与患者管理
@@ -606,7 +634,10 @@ PATCH /api/messages/msg-uuid-002/recall HTTP/1.1
     ]
   }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 6.2 获取待审核患者列表
 
 #### `GET /api/patients/pending`
@@ -636,7 +667,10 @@ PATCH /api/messages/msg-uuid-002/recall HTTP/1.1
     ]
   }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 6.3 批准患者
 
 #### `POST /api/patients/{id}/approve`
@@ -664,7 +698,10 @@ Content-Type: application/json
   ```json
   { "success": false, "message": "患者不存在", "data": null }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ### 6.4 拒绝患者
 
 #### `POST /api/patients/{id}/reject`
@@ -686,7 +723,10 @@ POST /api/patients/123456789/reject HTTP/1.1
   ```json
   { "success": false, "message": "患者不存在", "data": null }
   ```
-
+- **401 Unauthorized**（未登录）
+  ```json
+  { "success": false, "message": "Not Logged in.", "data": null }
+  ```
 ---
 
 ## 7. 训练数据上传与 Agent 分析
