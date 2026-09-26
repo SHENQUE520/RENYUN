@@ -2,6 +2,7 @@ package org.tenacitycodex.renyun.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.tenacitycodex.renyun.common.exceptions.ApiException;
 import org.tenacitycodex.renyun.common.exceptions.LoginFailedException;
 import org.tenacitycodex.renyun.common.exceptions.PasswordIncorrectException;
@@ -45,7 +46,7 @@ public abstract class BaseLoginStrategy implements ILoginStrategy {
                             true
                     );
                 }
-                throw new LoginFailedException("Password incorrect, please retry", remaining);
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
             }
             throw ex;
         }

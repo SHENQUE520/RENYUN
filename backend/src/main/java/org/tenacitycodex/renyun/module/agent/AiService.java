@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.tenacitycodex.renyun.common.exceptions.ApiException;
 
@@ -29,11 +30,11 @@ public class AiService {
     public String generateReport(String mode, String modeName, Double durationSec,
                                  Integer samples, Object stats) {
         if (apiKey == null || apiKey.isBlank() || apiKey.contains("your_deepseek")) {
-            throw new ApiException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
                     "服务器未配置 DEEPSEEK_API_KEY");
         }
         if (mode == null || stats == null) {
-            throw new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST, "缺少必要的训练数据");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "缺少必要的训练数据");
         }
         String statsJson = safeJson(stats);
         String prompt = String.format("""
@@ -60,7 +61,7 @@ public class AiService {
 
     public String generatePatientReport(Map<String, Object> patientData) {
         if (apiKey == null || apiKey.isBlank() || apiKey.contains("your_deepseek")) {
-            throw new ApiException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
                     "服务器未配置 DEEPSEEK_API_KEY");
         }
         String dataJson = safeJson(patientData);
@@ -82,7 +83,7 @@ public class AiService {
 
     public String chat(List<Map<String, Object>> messages, Double temperature) {
         if (apiKey == null || apiKey.isBlank() || apiKey.contains("your_deepseek")) {
-            throw new ApiException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
                     "服务器未配置 DEEPSEEK_API_KEY");
         }
         if (messages == null || messages.isEmpty()) {

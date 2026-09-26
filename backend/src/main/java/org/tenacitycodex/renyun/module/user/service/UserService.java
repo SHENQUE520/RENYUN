@@ -6,9 +6,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tenacitycodex.renyun.common.dto.ApiResponse;
 import org.tenacitycodex.renyun.common.dto.DoctorListDTO;
 import org.tenacitycodex.renyun.common.dto.PendingPatientDTO;
 import org.tenacitycodex.renyun.common.dto.request.PatientRegisterRequest;
@@ -16,8 +18,8 @@ import org.tenacitycodex.renyun.common.dto.request.RegisterRequest;
 import org.tenacitycodex.renyun.common.exceptions.ApiException;
 import org.tenacitycodex.renyun.common.exceptions.CacheException;
 import org.tenacitycodex.renyun.common.exceptions.CacheMissedException;
-import org.tenacitycodex.renyun.common.exceptions.EmailNotFoundException;
 import org.tenacitycodex.renyun.common.exceptions.PasswordIncorrectException;
+import org.tenacitycodex.renyun.common.exceptions.UsernameNotFoundException;
 import org.tenacitycodex.renyun.common.util.Snowflake;
 import org.tenacitycodex.renyun.component.abstracts.IUserService;
 import org.tenacitycodex.renyun.component.caching.UserCache;
@@ -87,14 +89,14 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User getUserByEmail(@NonNull String email) {
+    public User getUserByUsername(@NonNull String username) {
         try {
-            return userCacheEngine.getUserByEmail(email);
+            return userCacheEngine.getUserByUsername(username);
         } catch (Exception e) {
-            Optional<User> userOpt = userRepository.findUserByEmail(email);
+            Optional<User> userOpt = userRepository.findUserByUsername(username);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                userCacheEngine.setUserEmailKey(user);
+                userCacheEngine.setUserUsernameKey(user);
                 return user;
             }
         }
@@ -107,25 +109,21 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User loginViaEmailPwd(String email, String password) throws EmailNotFoundException, PasswordIncorrectException {
-        User user = getUserByEmail(email);
-        if (user != null){
-            if (passwordEncoder.matches(password, user.getPasswordHash())){
+    public User loginViaUsernamePwd(String username, String password) throws UsernameNotFoundException, PasswordIncorrectException {
+        User user = getUserByUsername(username);
+        if (user != null) {
+            if (passwordEncoder.matches(password, user.getPasswordHash())) {
                 userCacheEngine.cache(user);
                 return user;
             }
-            throw new PasswordIncorrectException("");
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
         }
-        throw new EmailNotFoundException("");
+        throw new ApiException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
     }
 
     @Override
-    public User loginViaEmailValidation(String email, String code) {
+    public User loginViaUsernameValidation(String username, String code) {
         return null;
-    }
-
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElse(null);
     }
 
     public boolean checkPassword(User user, String rawPassword) {
@@ -165,22 +163,25 @@ public class UserService implements IUserService {
     @Override
     public @Nullable User register(RegisterRequest request, String password) throws IllegalArgumentException{
         String hashedPassword = (passwordEncoder.encode(password));
+        if (getUserByUsername(request.getUsername()) != null) {
+            throw new ApiException(HttpStatus.CONFLICT, "用户已注册");
+        }
         User user = User
                 .builder()
                 .id(Snowflake.nextId())
                 .createdAt(LocalDateTime.now())
-                .email(request.getEmail())
-                .username(request.getName())
+                .username(request.getUsername())
                 .passwordHash(hashedPassword)
                 .role("patient")
+                .gender(request.getGender())
                 .name(request.getName())
                 .status("active")
                 .build();
         try {
             userRepository.save(user);
-            userCacheEngine.setUserEmailKey(user);
+            userCacheEngine.setUserUsernameKey(user);
         } catch (Exception e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException("");
         }
         return user;
     }

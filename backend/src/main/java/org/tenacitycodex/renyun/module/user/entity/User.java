@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users", indexes = {@Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_name", columnList = "username"),
+@Table(name = "users", indexes = {@Index(name = "idx_user_name", columnList = "username"),
         @Index(name = "idx_user_role", columnList = "role"),
         @Index(name = "idx_user_role_status", columnList = "role, status")})
 public class User {
@@ -21,14 +20,11 @@ public class User {
     @Column(name = "user_id", updatable = false, nullable = false, unique = true)
     private Long id;
 
-    @Column(name = "username", unique = true)
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
     @Column(name = "password", nullable = false)
     private String passwordHash;
-
-    @Column(name = "email", unique = true)
-    private String email;
 
     private int age;
 

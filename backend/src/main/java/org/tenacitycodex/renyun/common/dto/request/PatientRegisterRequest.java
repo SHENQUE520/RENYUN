@@ -1,12 +1,17 @@
 package org.tenacitycodex.renyun.common.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class PatientRegisterRequest {
+    @NotNull(message = "role不能为空")
     private String role;
+    @NotNull(message = "username不能为空")
     private String username;
+    @NotNull(message = "password不能为空")
     private String password;
+    @NotNull(message = "name不能为空")
     private String name;
     private String gender;
     private Integer age;

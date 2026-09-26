@@ -10,10 +10,10 @@ public interface IUserService {
     @Transactional
     void saveUser(User user);
     User getUserById(Long id);
-    User getUserByEmail(String email);
+    User getUserByUsername(String username);
     Page<User> getAllUsers(Pageable page);
-    User loginViaEmailPwd(String email, String password);
-    User loginViaEmailValidation(String email, String code);
+    User loginViaUsernamePwd(String username, String password);
+    User loginViaUsernameValidation(String username, String code);
 
     User register(RegisterRequest payload, String password);
 }

@@ -1,5 +1,6 @@
 package org.tenacitycodex.renyun.common.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -16,9 +17,9 @@ public class TrainingUploadRequest {
     private String modeName;
 
     private Double durationSec;
-
+    @NotNull(message = "samples 不能为空")
     private Integer samples;
 
-    @NotNull
+    @NotNull(message = "stats 不能为空") @Valid
     private TrainingStats stats;
 }
