@@ -1,9 +1,11 @@
 package org.tenacitycodex.renyun.api.v1.training;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.tenacitycodex.renyun.common.annotation.RequireAuth;
 import org.tenacitycodex.renyun.common.dto.ApiResponse;
 import org.tenacitycodex.renyun.common.dto.request.ChatRequest;
 import org.tenacitycodex.renyun.common.dto.request.PatientReportRequest;
@@ -20,9 +22,9 @@ import java.util.Map;
 public class AIController {
 
     private final AiService aiService;
-
+    @RequireAuth
     @PostMapping("/report")
-    public ResponseEntity<ApiResponse<String>> generateReport(@RequestBody ReportRequest request) {
+    public ResponseEntity<ApiResponse<String>> generateReport(@RequestBody @Valid ReportRequest request) {
         String report = aiService.generateReport(
                 request.getMode(),
                 request.getModeName(),
@@ -31,9 +33,9 @@ public class AIController {
                 request.getStats());
         return ResponseEntity.ok(ApiResponse.ok(report));
     }
-
+    @RequireAuth
     @PostMapping("/patient-report")
-    public ResponseEntity<ApiResponse<String>> generatePatientReport(@RequestBody PatientReportRequest request) {
+    public ResponseEntity<ApiResponse<String>> generatePatientReport(@RequestBody @Valid PatientReportRequest request) {
         Map<String, Object> data = new HashMap<>();
         data.put("patientName", request.getPatientName());
         data.put("gender", request.getGender());
@@ -49,9 +51,9 @@ public class AIController {
         String report = aiService.generatePatientReport(data);
         return ResponseEntity.ok(ApiResponse.ok(report));
     }
-
+    @RequireAuth
     @PostMapping("/chat")
-    public ResponseEntity<ApiResponse<String>> chat(@RequestBody ChatRequest request) {
+    public ResponseEntity<ApiResponse<String>> chat(@RequestBody @Valid ChatRequest request) {
         String reply = aiService.chat(request.getMessages(), request.getTemperature());
         return ResponseEntity.ok(ApiResponse.ok(reply));
     }

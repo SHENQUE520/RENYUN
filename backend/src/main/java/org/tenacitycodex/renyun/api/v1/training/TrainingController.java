@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.tenacitycodex.renyun.common.annotation.RequireAuth;
 import org.tenacitycodex.renyun.common.config.security.SecurityUtil;
 import org.tenacitycodex.renyun.common.dto.ApiResponse;
 import org.tenacitycodex.renyun.common.dto.TaskDTO;

@@ -1,11 +1,13 @@
 package org.tenacitycodex.renyun.api.v1.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.tenacitycodex.renyun.common.annotation.RequireAuth;
 import org.tenacitycodex.renyun.common.dto.ApiResponse;
 import org.tenacitycodex.renyun.common.dto.MessageDTO;
 import org.tenacitycodex.renyun.common.dto.request.MessageSendRequest;
@@ -22,12 +24,12 @@ public class MessageController {
 
     private final MessageService messageService;
     private final SseEventService sseEventService;
-
+    @RequireAuth
     @GetMapping("/stream")
     public SseEmitter stream() {
         return sseEventService.createEmitter();
     }
-
+    @RequireAuth
     @GetMapping
     public ResponseEntity<ApiResponse<List<MessageDTO>>> getMessages(
             @RequestParam(name = "patientId", required = false) String patientId) {
@@ -36,9 +38,9 @@ public class MessageController {
                 : messageService.getAllMessages();
         return ResponseEntity.ok(ApiResponse.ok(messages));
     }
-
+    @RequireAuth
     @PostMapping
-    public ResponseEntity<ApiResponse<MessageDTO>> sendMessage(@RequestBody MessageSendRequest request) {
+    public ResponseEntity<ApiResponse<MessageDTO>> sendMessage(@RequestBody @Valid MessageSendRequest request) {
         MessageDTO dto = MessageDTO.builder()
                 .id(request.getId())
                 .fromRole(request.getFromRole())
@@ -55,7 +57,7 @@ public class MessageController {
         sseEventService.broadcast("{\"type\":\"message\",\"msg\":" + toJson(saved) + "}");
         return ResponseEntity.ok(ApiResponse.ok(saved));
     }
-
+    @RequireAuth
     @PatchMapping("/{id}/recall")
     public ResponseEntity<ApiResponse<MessageDTO>> recallMessage(@PathVariable String id) {
         MessageDTO recalled = messageService.recallMessage(id);

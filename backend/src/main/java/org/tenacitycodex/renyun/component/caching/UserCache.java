@@ -13,11 +13,11 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class UserCache extends AbstractCacheEngine<User, Long> {
 
-    private String emailPrefix = "email";
+    private String usernamePrefix = "username";
 
     public UserCache(ObjectMapper objectMapper, RedisService redisService) {
         super(objectMapper, redisService);
-        emailPrefix = getKeyPrefix() + emailPrefix;
+        usernamePrefix = getKeyPrefix() + usernamePrefix;
     }
 
     @Override
@@ -27,9 +27,9 @@ public class UserCache extends AbstractCacheEngine<User, Long> {
         return user;
     }
 
-    public User getUserByEmail(@NonNull String email){
-        String phoneKey = emailPrefix + email;
-        Object userIdStr = redisService.getValue(phoneKey);
+    public User getUserByUsername(@NonNull String username) {
+        String usernameKey = usernamePrefix + username;
+        Object userIdStr = redisService.getValue(usernameKey);
 
         if (userIdStr == null) {
             throw new CacheMissedException(null);
@@ -37,13 +37,13 @@ public class UserCache extends AbstractCacheEngine<User, Long> {
         try {
             return getCachedById(Long.parseLong((String) userIdStr));
         } catch (NumberFormatException e) {
-            redisService.deleteValue(phoneKey);
+            redisService.deleteValue(usernameKey);
             throw new CacheMissedException(e.getMessage());
         }
     }
 
-    public void setUserEmailKey(User user){
-        redisService.setValue(emailPrefix + user.getEmail(), String.valueOf(user.getId()));
+    public void setUserUsernameKey(User user) {
+        redisService.setValue(usernamePrefix + user.getUsername(), String.valueOf(user.getId()));
     }
 
     @Override

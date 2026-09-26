@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserDTO {
     private Long id;
-    private String email;
+    private String username;
     private String name;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public static UserDTO fromUser(User user) {
         return UserDTO.builder()
                 .id(user.getId())
-                .email(user.getEmail())
-                .name(user.getUsername())
+                .username(user.getUsername())
+                .name(user.getName())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
@@ -28,8 +28,8 @@ public class UserDTO {
     public User toUser() {
         User user = new User();
         user.setId(this.id);
-        user.setEmail(this.email);
-        user.setUsername(this.name);
+        user.setUsername(this.username);
+        user.setName(this.name);
         return user;
     }
 }
