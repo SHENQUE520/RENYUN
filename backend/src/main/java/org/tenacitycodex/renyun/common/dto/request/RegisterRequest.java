@@ -13,4 +13,12 @@ public class RegisterRequest {
     private String password;
     @NotNull(message = "gender不能为空")
     private String gender;
+    @NotNull(message = "age不能为空")
+    private Integer age;
+    @NotNull(message = "diagnosis不能为空")
+    private String diagnosis;
+    @NotNull(message = "hospital不能为空")
+    private String hospital;
+    private Long doctorId;
+    private String doctorName;
 }

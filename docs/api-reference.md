@@ -20,7 +20,7 @@
 POST /api/v1/auth/portal/login
 Content-Type: application/json
 
-### 示例请求
+### 示例请求（病人登录）
 ```json
 {
   "loginType": "patient",
@@ -30,22 +30,60 @@ Content-Type: application/json
   }
 }
 ```
-> `loginType` 可选 `patient` 或 `doctor`，需与账号角色一致。
 
-### 示例返回 （200）：
+### 示例返回 （200）（病人）：
 ```json
 {
   "success": true,
   "data": {
     "id": 290900625330274304,
     "username": "zhangsan",
-    "name": "lotiyu",
+    "name": "张三",
     "role": "patient",
-    "department": null,
+    "gender": "男",
+    "status": "active",
+    "age": 35,
+    "diagnosis": "ACL 术后",
+    "hospital": "康复医院",
+    "doctorId": 111111111,
+    "doctorName": "李医生",
     "createdAt": "2026-09-12T01:35:13.834299"
   }
 }
 ```
+
+### 示例请求（医生登录）
+```json
+{
+  "loginType": "doctor",
+  "credential": {
+    "username": "lidoctor",
+    "password": "123abc"
+  }
+}
+```
+
+### 示例返回 （200）（医生）：
+```json
+{
+  "success": true,
+  "data": {
+    "id": 290900625330274305,
+    "username": "lidoctor",
+    "name": "李医生",
+    "role": "doctor",
+    "gender": "男",
+    "status": "active",
+    "hospital": "康复医院",
+    "department": "运动医学科",
+    "title": "主治医师",
+    "speciality": "运动损伤康复",
+    "createdAt": "2026-09-12T01:35:13.834299"
+  }
+}
+```
+
+> `loginType` 可选 `patient` 或 `doctor`，需与账号角色一致。
 ### 示例返回 （400）（参数校验失败）
 ```json
 {
@@ -88,12 +126,18 @@ Content-Type: application/json
 ### 示例请求
 ```json
 {
-  "username": "昵称（用于登录）",
-  "name": "姓名",
+  "username": "zhangsan",
+  "name": "张三",
   "gender": "male",
-  "password": "123abc"
+  "password": "123abc",
+  "age": 35,
+  "diagnosis": "ACL 术后",
+  "hospital": "康复医院",
+  "doctorId": 111111111,
+  "doctorName": "李医生"
 }
 ```
+> 注册接口仅用于病人注册，提交后会同时创建 `users` 账号与 `patient_profiles` 档案。
 
 ### 示例返回 （201）：
 
@@ -103,12 +147,12 @@ Content-Type: application/json
   "message": "OK",
   "data": {
     "id": 296214463181225984,
-    "username": "sd",
+    "username": "zhangsan",
     "passwordHash": "$2a$10$ghKhhDM/akPy1xYXnH1aCOcEgRq7TYLUhaFVZeVet1wQU0rCj6du.",
-    "age": 0,
+    "age": 35,
     "role": "patient",
-    "name": "lotiyu",
-    "gender": null,
+    "name": "张三",
+    "gender": "male",
     "status": "active",
     "createdAt": "2026-09-26T17:30:31.4211398"
   }
@@ -143,7 +187,7 @@ Content-Type: application/json
 ```
 要点：
 - 登录请求体为 `{ "loginType": "patient|doctor", "credential": { "username": "...", "password": "..." } }`，成功后通过 `Set-Cookie` 写入 `access_token`（HttpOnly），前端无需手动处理 token。
-- 注册请求体为 `{ "username": "...", "name": "...", "gender": "...", "password": "..." }`。
+- 注册请求体为 `{ "username": "...", "name": "...", "gender": "...", "password": "...", "age": ..., "diagnosis": "...", "hospital": "...", "doctorId": ..., "doctorName": "..." }`，仅用于病人注册，同时写入 `patient_profiles`。
 - 参数校验失败统一返回 HTTP 400，`message` 为第一个校验失败的字段提示，如 `"xxx不能为空"`。
 
 ---
